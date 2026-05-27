@@ -23,3 +23,15 @@
 - Reason: The repository is new, the user requested GitHub commits after test stages, and direct main pushes keep the bootstrap history simple.
 - Rejected alternatives: Draft PR for bootstrap, per-stage branches, or local-only commits.
 - Constraints: Each pushed commit should correspond to a passing validation stage when network connectivity allows.
+
+## 2026-05-27: Start observability with append-only trace events
+- Decision: Model Agent observability as `AgentRun` plus ordered append-only `RunEvent` records.
+- Reason: Agent debugging needs a durable timeline that can support tool calls, model calls, RAG retrieval, errors, evaluation, and custom events without separate incompatible stores.
+- Rejected alternatives: Store only run summaries, or create separate tables for every event subtype before the event contract is stable.
+- Constraints: Event payloads remain JSON objects capped at 64KB; future typed views can be derived from the event log.
+
+## 2026-05-27: Use SQLite for MVP trace storage
+- Decision: Persist local trace data in SQLite at `.agentops/agentops.db`.
+- Reason: SQLite gives durable local debugging data without requiring a database service during MVP development.
+- Rejected alternatives: In-memory storage because traces would disappear on restart; PostgreSQL first because it would add setup friction before schema shape is stable.
+- Constraints: Keep repository boundaries narrow so PostgreSQL can replace SQLite later.
