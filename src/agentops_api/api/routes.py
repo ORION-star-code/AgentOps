@@ -9,9 +9,11 @@ from agentops_api.observability import (
     AgentRunCreate,
     RunEvent,
     RunEventCreate,
+    RunEventType,
     RunNotFoundError,
     TraceRepository,
 )
+from agentops_api.rag import RagEvidence
 
 router = APIRouter()
 
@@ -70,5 +72,26 @@ def list_run_events(
 ) -> list[RunEvent]:
     try:
         return repository.list_events(run_id)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+
+
+@router.post(
+    "/v1/runs/{run_id}/rag/evidence",
+    response_model=RunEvent,
+    status_code=status.HTTP_201_CREATED,
+)
+def append_rag_evidence(
+    run_id: str,
+    evidence: RagEvidence,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+) -> RunEvent:
+    payload = RunEventCreate(
+        type=RunEventType.RAG_RETRIEVAL,
+        name="rag_evidence",
+        payload=evidence.model_dump(mode="json"),
+    )
+    try:
+        return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
