@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from agentops_api.main import app
+from agentops_api.main import create_app
 
 
 def test_feature_inventory_exists() -> None:
@@ -13,8 +13,8 @@ def test_feature_inventory_exists() -> None:
     assert len(data["features"]) >= 3
 
 
-def test_health_endpoint() -> None:
-    client = TestClient(app)
+def test_health_endpoint(tmp_path) -> None:
+    client = TestClient(create_app(tmp_path / "agentops.db"))
 
     response = client.get("/health")
 
