@@ -15,3 +15,13 @@ This repository is in harness bootstrap. The first milestone is to make the proj
 - `PROGRESS.md`: current state and validation history.
 - `DECISIONS.md`: durable technical decisions.
 - `docs/QUALITY.md`: quality notes and cleanup priorities.
+
+## Local Commands
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
+powershell -ExecutionPolicy Bypass -File scripts/test.ps1
+powershell -ExecutionPolicy Bypass -File scripts/lint.ps1
+powershell -ExecutionPolicy Bypass -File scripts/check.ps1
+```

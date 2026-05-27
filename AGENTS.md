@@ -7,11 +7,11 @@ Developer observability and automated evaluation platform for LangGraph and RAG 
 - Python 3.12, FastAPI, pytest, ruff, PowerShell command scripts
 
 ## Standard Commands
-- Setup: `make setup`
-- Dev server: `make dev`
-- Test: `make test`
-- Lint/static checks: `make lint`
-- Complete validation: `make check`
+- Setup: `powershell -ExecutionPolicy Bypass -File scripts/setup.ps1`
+- Dev server: `powershell -ExecutionPolicy Bypass -File scripts/dev.ps1`
+- Test: `powershell -ExecutionPolicy Bypass -File scripts/test.ps1`
+- Lint/static checks: `powershell -ExecutionPolicy Bypass -File scripts/lint.ps1`
+- Complete validation: `powershell -ExecutionPolicy Bypass -File scripts/check.ps1`
 
 ## Hard Rules
 - Keep WIP=1. Only one feature in `docs/features.json` may be `active`.
@@ -25,13 +25,13 @@ Developer observability and automated evaluation platform for LangGraph and RAG 
 1. Read `PROGRESS.md`.
 2. Read `DECISIONS.md`.
 3. Read `docs/features.json`.
-4. Run `make check` when practical.
+4. Run `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` when practical.
 5. Continue from the first `active` item, or choose one `not_started` item and mark only that item active.
 
 ## Session End
 1. Update `PROGRESS.md`.
 2. Update feature state and evidence in `docs/features.json`.
-3. Run `make check` or record the exact blocker.
+3. Run `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` or record the exact blocker.
 4. Leave clear next steps.
 
 ## Validation Levels
