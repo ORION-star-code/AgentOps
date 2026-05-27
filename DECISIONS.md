@@ -35,3 +35,9 @@
 - Reason: SQLite gives durable local debugging data without requiring a database service during MVP development.
 - Rejected alternatives: In-memory storage because traces would disappear on restart; PostgreSQL first because it would add setup friction before schema shape is stable.
 - Constraints: Keep repository boundaries narrow so PostgreSQL can replace SQLite later.
+
+## 2026-05-27: Store RAG evidence as typed timeline events
+- Decision: Persist RAG evidence through `RunEvent(type="rag_retrieval")` instead of creating dedicated RAG tables in F02.
+- Reason: Retrieval evidence is part of the Agent execution timeline and should be visible alongside messages, model calls, tool calls, and errors.
+- Rejected alternatives: Separate RAG persistence before query and evaluation patterns are stable.
+- Constraints: RAG evidence must be validated before being written into the append-only event log.

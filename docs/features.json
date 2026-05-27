@@ -27,8 +27,8 @@
       "id": "F02",
       "behavior": "Record RAG retrieval evidence with query, chunks, source metadata, hit or miss signal, and citation coverage.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
+      "state": "passing",
+      "evidence": "2026-05-27: Implemented RagEvidence, RetrievedChunk, Citation, and RagHitStatus schemas with validation for citation references and hit/miss consistency. Added POST /v1/runs/{run_id}/rag/evidence, which persists evidence as a rag_retrieval timeline event. Validation passed with ruff, 20 pytest tests, and harness validation via scripts/check.ps1."
     },
     {
       "id": "F03",

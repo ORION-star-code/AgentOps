@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F01 trace foundation complete
+- Latest checkpoint: F02 RAG evidence foundation complete
 - Last validation: 2026-05-27, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -17,6 +17,10 @@
 - [x] SQLite append-only trace event repository added
 - [x] `/v1/runs` and `/v1/runs/{run_id}/events` ingestion/query API added
 - [x] Trace repository and API integration tests passed
+- [x] F02 RAG evidence schemas added
+- [x] RAG evidence validation rules added for chunks, citations, and hit status
+- [x] `/v1/runs/{run_id}/rag/evidence` ingestion API added
+- [x] RAG evidence is persisted as `rag_retrieval` timeline events
 
 ## In Progress
 - None
@@ -25,6 +29,6 @@
 - None recorded
 
 ## Next Steps
-1. Start `F02` by defining RAG retrieval evidence on top of the run event timeline.
-2. Add retrieval chunks, source metadata, scoring, and citation coverage contracts.
+1. Start `F03` by defining automated answer quality evaluation results.
+2. Connect groundedness, citation accuracy, hallucination risk, and trustworthiness checks to the existing run timeline.
 3. Keep WIP=1 and update `docs/features.json` with evidence after each passing verification.

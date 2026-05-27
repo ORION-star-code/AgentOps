@@ -53,6 +53,42 @@ GET /v1/runs/{run_id}/events  ---->  ordered timeline
 - `POST /v1/runs/{run_id}/events`
 - `GET /v1/runs/{run_id}/events`
 
+## F02 RAG Evidence Foundation
+
+RAG retrieval evidence is stored as a typed `rag_retrieval` event in the same run timeline:
+
+```text
+RAG Agent / retriever
+        |
+        v
+POST /v1/runs/{run_id}/rag/evidence
+        |
+        v
+RunEvent(type="rag_retrieval", payload=RagEvidence)
+        |
+        v
+GET /v1/runs/{run_id}/events
+```
+
+### RAG Evidence Contract
+
+- `RagEvidence`: `query`, `hit_status`, `chunks`, `citations`, `citation_coverage`, `metadata`.
+- `RetrievedChunk`: `chunk_id`, `source_uri`, `content_preview`, `score`, `rerank_score`, `metadata`.
+- `Citation`: `chunk_id`, `claim`, `quote`.
+- `hit_status`: `hit`, `partial`, `miss`.
+
+### RAG Validation Rules
+
+- Citations must reference retrieved `chunk_id` values.
+- `hit` evidence requires at least one retrieved chunk and at least one citation.
+- `partial` evidence requires at least one retrieved chunk.
+- `miss` evidence may have no chunks and cannot include citations.
+- RAG evidence metadata uses the same 64KB JSON cap as trace metadata.
+
+### Current RAG API
+
+- `POST /v1/runs/{run_id}/rag/evidence`
+
 ## Validation Boundary
 
 Every implementation step must preserve:

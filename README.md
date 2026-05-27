@@ -6,7 +6,16 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository is in harness bootstrap. The first milestone is to make the project easy for a fresh coding agent to understand, run, validate, and continue safely.
+This repository has a working trace and RAG evidence foundation. The API can create Agent runs, append timeline events, and record structured RAG retrieval evidence for later evaluation.
+
+## Current API
+
+- `GET /health`
+- `POST /v1/runs`
+- `GET /v1/runs/{run_id}`
+- `POST /v1/runs/{run_id}/events`
+- `GET /v1/runs/{run_id}/events`
+- `POST /v1/runs/{run_id}/rag/evidence`
 
 ## Project Documents
 
