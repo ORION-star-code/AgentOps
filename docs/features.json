@@ -10,41 +10,46 @@
     ],
     "passing_requires": "The verification command succeeds and evidence is recorded."
   },
+  "bootstrap_evidence": {
+    "date": "2026-05-27",
+    "command": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+    "result": "passed: ruff check, pytest smoke tests (2 passed), and harness validation"
+  },
   "features": [
     {
       "id": "F01",
       "behavior": "Capture an Agent run timeline with reasoning steps, tool calls, token usage, latency, and errors.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": ""
+      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
     },
     {
       "id": "F02",
       "behavior": "Record RAG retrieval evidence with query, chunks, source metadata, hit or miss signal, and citation coverage.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": ""
+      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
     },
     {
       "id": "F03",
       "behavior": "Run automated answer quality checks for hallucination risk, groundedness, and trustworthiness.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": ""
+      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
     },
     {
       "id": "F04",
       "behavior": "Compare evaluation results across prompt or code changes to detect regressions.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": ""
+      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
     },
     {
       "id": "F05",
       "behavior": "Define a developer-facing run detail contract showing what the Agent thought, called, spent, and where it failed.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": ""
+      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
     }
   ]
 }

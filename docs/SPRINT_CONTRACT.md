@@ -7,7 +7,7 @@
 
 ## Verification Standards
 - `python harness/validate.py` passes.
-- Complete repo validation command passes, or blockers are written in `PROGRESS.md`.
+- `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passes, or blockers are written in `PROGRESS.md`.
 - A fresh agent can answer how to run, how to test, and what to do next from repository files alone.
 
 ## Exclusions

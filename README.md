@@ -15,6 +15,7 @@ This repository is in harness bootstrap. The first milestone is to make the proj
 - `PROGRESS.md`: current state and validation history.
 - `DECISIONS.md`: durable technical decisions.
 - `docs/QUALITY.md`: quality notes and cleanup priorities.
+- `docs/ARCHITECTURE.md`: initial product and module boundaries.
 
 ## Local Commands
 

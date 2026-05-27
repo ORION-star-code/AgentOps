@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI
 
+from agentops_api.api import router
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -9,16 +11,9 @@ def create_app() -> FastAPI:
         summary="Observability and automated evaluation for LangGraph and RAG Agents.",
         version="0.1.0",
     )
-
-    @app.get("/health")
-    def health() -> dict[str, str]:
-        return {
-            "status": "ok",
-            "service": "agentops-api",
-        }
+    app.include_router(router)
 
     return app
 
 
 app = create_app()
-
