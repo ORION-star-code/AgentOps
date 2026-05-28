@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, and regression comparison foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, and compare candidate changes against baselines.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, and run detail foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, and return a developer-facing run detail payload.
 
 ## Current API
 
@@ -18,6 +18,7 @@ This repository has a working trace, RAG evidence, answer quality evaluation, an
 - `POST /v1/runs/{run_id}/rag/evidence`
 - `POST /v1/runs/{run_id}/evaluations`
 - `POST /v1/regressions/compare`
+- `GET /v1/runs/{run_id}/detail`
 
 ## Project Documents
 

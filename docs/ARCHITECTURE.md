@@ -159,6 +159,28 @@ RegressionReport(status, metric deltas, version metadata)
 
 - `POST /v1/regressions/compare`
 
+## F05 Run Detail Contract
+
+Run detail is a single developer-facing payload for inspecting one Agent execution:
+
+```text
+GET /v1/runs/{run_id}/detail
+        |
+        v
+RunDetail(run, summary, timeline, typed event groups)
+```
+
+### Run Detail Contract
+
+- `RunDetail`: `run`, `summary`, `timeline`, `messages`, `model_calls`, `tool_calls`, `rag_evidence`, `evaluations`, `errors`.
+- `RunDetailSummary`: event counts by type plus total token and latency spend.
+- The `timeline` remains ordered by server-assigned event `sequence`.
+- Typed groups are views over the same timeline events, not separate persistence.
+
+### Current Detail API
+
+- `GET /v1/runs/{run_id}/detail`
+
 ## Validation Boundary
 
 Every implementation step must preserve:

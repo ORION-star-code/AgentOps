@@ -48,8 +48,8 @@
       "id": "F05",
       "behavior": "Define a developer-facing run detail contract showing what the Agent thought, called, spent, and where it failed.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Implemented RunDetail and RunDetailSummary contracts plus GET /v1/runs/{run_id}/detail. The detail payload returns run metadata, ordered timeline, grouped messages/model calls/tool calls/RAG evidence/evaluations/errors, total token spend, and total latency. Validation passed with pytest run detail API coverage before final documentation update."
     }
   ]
 }

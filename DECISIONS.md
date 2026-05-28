@@ -53,3 +53,9 @@
 - Reason: The first production need is a stable comparison contract for prompt/model/code changes; persistence can be added after report shape and CI usage stabilize.
 - Rejected alternatives: Store regression reports in SQLite immediately, or compare raw runs without normalized evaluation metrics.
 - Constraints: Baseline and candidate must compare the same metric names and include version metadata.
+
+## 2026-05-28: Build run detail as a derived view over the event log
+- Decision: Implement `GET /v1/runs/{run_id}/detail` as an aggregated view over `AgentRun` and ordered `RunEvent` records.
+- Reason: The UI and debugging workflow need one stable payload showing what happened, what tools were called, what was retrieved, how quality was judged, what was spent, and where failures occurred.
+- Rejected alternatives: Persist a separate run detail snapshot that could drift from the append-only timeline.
+- Constraints: Run detail remains derived from canonical events; future UI should consume this contract rather than querying multiple low-level endpoints.

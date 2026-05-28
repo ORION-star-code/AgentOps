@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F04 regression foundation complete
+- Latest checkpoint: F05 run detail contract complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -29,6 +29,9 @@
 - [x] Regression comparison supports prompt/model/version metadata
 - [x] `/v1/regressions/compare` API added
 - [x] Regression reports classify improved, unchanged, and regressed candidates
+- [x] F05 run detail schemas and summary builder added
+- [x] `/v1/runs/{run_id}/detail` API added
+- [x] Run detail aggregates ordered timeline, typed event groups, token spend, latency, and failures
 
 ## In Progress
 - None
@@ -37,6 +40,6 @@
 - None recorded
 
 ## Next Steps
-1. Start `F05` by defining the developer-facing run detail contract.
-2. Aggregate run summary, ordered timeline, RAG evidence, evaluation events, and failures into one inspectable payload.
-3. Keep WIP=1 and update `docs/features.json` with evidence after each passing verification.
+1. Expand persistence beyond SQLite when production deployment requirements are clearer.
+2. Add authentication, project isolation, redaction, and retention controls before handling sensitive traces.
+3. Build a UI or SDK on top of the stable trace, RAG, evaluation, regression, and run detail contracts.
