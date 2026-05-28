@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F03 evaluation foundation complete
+- Latest checkpoint: F04 regression foundation complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -25,6 +25,10 @@
 - [x] Evaluation metric normalization and verdict computation added
 - [x] `/v1/runs/{run_id}/evaluations` ingestion API added
 - [x] Evaluation results are persisted as `evaluation` timeline events
+- [x] F04 regression comparison schemas added
+- [x] Regression comparison supports prompt/model/version metadata
+- [x] `/v1/regressions/compare` API added
+- [x] Regression reports classify improved, unchanged, and regressed candidates
 
 ## In Progress
 - None
@@ -33,6 +37,6 @@
 - None recorded
 
 ## Next Steps
-1. Start `F04` by defining regression comparison between baseline and candidate evaluation results.
-2. Add prompt/model/version metadata required to compare Agent changes safely.
+1. Start `F05` by defining the developer-facing run detail contract.
+2. Aggregate run summary, ordered timeline, RAG evidence, evaluation events, and failures into one inspectable payload.
 3. Keep WIP=1 and update `docs/features.json` with evidence after each passing verification.

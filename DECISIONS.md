@@ -47,3 +47,9 @@
 - Reason: Evaluation results explain whether a specific answer in a specific run was grounded, cited, trustworthy, and low-risk, so they belong beside the trace and RAG evidence that produced the answer.
 - Rejected alternatives: Dedicated evaluation tables before regression comparison requirements are clear.
 - Constraints: Metric scores are normalized to `[0, 1]`; verdict computation remains deterministic until an external judge runner is added.
+
+## 2026-05-28: Start regression comparison as a deterministic report
+- Decision: Implement regression comparison as `POST /v1/regressions/compare` returning a `RegressionReport`, without persisting reports yet.
+- Reason: The first production need is a stable comparison contract for prompt/model/code changes; persistence can be added after report shape and CI usage stabilize.
+- Rejected alternatives: Store regression reports in SQLite immediately, or compare raw runs without normalized evaluation metrics.
+- Constraints: Baseline and candidate must compare the same metric names and include version metadata.

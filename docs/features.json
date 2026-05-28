@@ -41,8 +41,8 @@
       "id": "F04",
       "behavior": "Compare evaluation results across prompt or code changes to detect regressions.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Implemented regression comparison schemas and POST /v1/regressions/compare. Baseline and candidate evaluation results are compared with prompt/model/version metadata, metric-level quality deltas, tolerance-based regression detection, and improved/unchanged/regressed status. Validation passed with pytest schema/API coverage before documentation update."
     },
     {
       "id": "F05",

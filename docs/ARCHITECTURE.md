@@ -125,6 +125,40 @@ GET /v1/runs/{run_id}/events
 
 - `POST /v1/runs/{run_id}/evaluations`
 
+## F04 Regression Foundation
+
+Regression comparison is a deterministic API over two evaluation results:
+
+```text
+baseline EvaluationResult + candidate EvaluationResult
+        |
+        v
+POST /v1/regressions/compare
+        |
+        v
+RegressionReport(status, metric deltas, version metadata)
+```
+
+### Regression Contract
+
+- `EvaluationComparisonSubject`: `run_id`, `version`, `prompt_version`, `model_version`, `evaluation`.
+- `RegressionComparisonCreate`: `baseline`, `candidate`, `regression_tolerance`, `metadata`.
+- `RegressionReport`: baseline/candidate run IDs and versions, baseline/candidate verdicts, status, tolerance, metric comparisons.
+- `MetricRegressionComparison`: `name`, baseline/candidate scores, raw score delta, quality delta, threshold, and improved/regressed flags.
+
+### Regression Rules
+
+- Baseline and candidate must contain the same metric names.
+- For `gte` metrics, higher candidate scores are better.
+- For `lte` metrics, lower candidate scores are better.
+- A metric regresses when quality delta is less than negative `regression_tolerance`.
+- A metric improves when quality delta is greater than `regression_tolerance`.
+- Report status is `regressed` if any metric regresses, `improved` if no metric regresses and at least one improves, otherwise `unchanged`.
+
+### Current Regression API
+
+- `POST /v1/regressions/compare`
+
 ## Validation Boundary
 
 Every implementation step must preserve:
