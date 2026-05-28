@@ -1,10 +1,5 @@
-from fastapi.testclient import TestClient
-
-from agentops_api.main import create_app
-
-
-def test_append_rag_evidence_to_run_timeline(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_append_rag_evidence_to_run_timeline(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -43,8 +38,8 @@ def test_append_rag_evidence_to_run_timeline(tmp_path) -> None:
     assert events_response.json()[0]["id"] == event["id"]
 
 
-def test_rag_evidence_allows_empty_miss(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_rag_evidence_allows_empty_miss(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -61,8 +56,8 @@ def test_rag_evidence_allows_empty_miss(tmp_path) -> None:
     assert response.json()["payload"]["hit_status"] == "miss"
 
 
-def test_rag_evidence_rejects_unknown_citation_chunk(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_rag_evidence_rejects_unknown_citation_chunk(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -84,8 +79,8 @@ def test_rag_evidence_rejects_unknown_citation_chunk(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_hit_rag_evidence_requires_citation(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_hit_rag_evidence_requires_citation(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -107,8 +102,8 @@ def test_hit_rag_evidence_requires_citation(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_unknown_run_rag_evidence_returns_404(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_unknown_run_rag_evidence_returns_404(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/runs/missing-run/rag/evidence",

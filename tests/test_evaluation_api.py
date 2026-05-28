@@ -1,10 +1,5 @@
-from fastapi.testclient import TestClient
-
-from agentops_api.main import create_app
-
-
-def test_append_evaluation_to_run_timeline(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_append_evaluation_to_run_timeline(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -39,8 +34,8 @@ def test_append_evaluation_to_run_timeline(tmp_path) -> None:
     assert events_response.json()[0]["id"] == event["id"]
 
 
-def test_evaluation_returns_warn_for_partial_metric_pass(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_evaluation_returns_warn_for_partial_metric_pass(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -58,8 +53,8 @@ def test_evaluation_returns_warn_for_partial_metric_pass(tmp_path) -> None:
     assert response.json()["payload"]["verdict"] == "warn"
 
 
-def test_evaluation_rejects_duplicate_metrics(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_evaluation_rejects_duplicate_metrics(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -76,8 +71,8 @@ def test_evaluation_rejects_duplicate_metrics(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_evaluation_rejects_invalid_metric_score(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_evaluation_rejects_invalid_metric_score(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -91,8 +86,8 @@ def test_evaluation_rejects_invalid_metric_score(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_unknown_run_evaluation_returns_404(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_unknown_run_evaluation_returns_404(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/runs/missing-run/evaluations",

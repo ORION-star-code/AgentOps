@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F05 run detail contract complete
+- Latest checkpoint: F06 security boundary and project isolation complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -32,6 +32,10 @@
 - [x] F05 run detail schemas and summary builder added
 - [x] `/v1/runs/{run_id}/detail` API added
 - [x] Run detail aggregates ordered timeline, typed event groups, token spend, latency, and failures
+- [x] F06 API key authentication added for all `/v1` routes
+- [x] API keys are bound to project IDs and `ingest`, `read`, `evaluate`, or `admin` scopes
+- [x] Run creation, run reads, timeline writes, RAG evidence writes, and evaluation writes enforce project ownership
+- [x] Security tests cover missing keys, invalid keys, cross-project access, and insufficient scopes
 
 ## In Progress
 - None
@@ -40,6 +44,6 @@
 - None recorded
 
 ## Next Steps
-1. Expand persistence beyond SQLite when production deployment requirements are clearer.
-2. Add authentication, project isolation, redaction, and retention controls before handling sensitive traces.
-3. Build a UI or SDK on top of the stable trace, RAG, evaluation, regression, and run detail contracts.
+1. Implement F07 redaction and retention before storing sensitive real-world trace payloads.
+2. Implement F08 trace ingestion correctness, including event type restrictions, sequence safety, and run lifecycle transitions.
+3. Add SDK/UI coverage only after the security and ingestion foundations are stable.

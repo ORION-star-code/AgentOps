@@ -9,9 +9,34 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 ## Initial Module Boundaries
 
 - `agentops_api.api`: HTTP routes and request/response wiring.
+- `agentops_api.security`: API key authentication, scope checks, and project isolation.
 - `agentops_api.observability`: Agent run traces, reasoning timeline, tool calls, token usage, latency, and errors.
 - `agentops_api.rag`: Retrieval queries, chunks, citations, hit/miss signals, and grounding evidence.
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
+
+## F06 Security Boundary
+
+All `/v1` APIs require an `X-AgentOps-API-Key` header. API keys are configured as project-bound credentials with explicit scopes:
+
+```json
+[
+  {
+    "key": "local-dev-key",
+    "project_id": "demo-project",
+    "scopes": ["ingest", "read", "evaluate", "admin"]
+  }
+]
+```
+
+### Authorization Rules
+
+- `GET /health` is public.
+- `ingest` can create runs, append timeline events, and write RAG evidence.
+- `read` can fetch runs, timelines, and run detail.
+- `evaluate` can write evaluation events and compare regression payloads.
+- `admin` satisfies scope checks for its bound project, but does not bypass project isolation.
+- Run-scoped APIs verify that the stored run `project_id` matches the authenticated API key project.
+- Missing or invalid API keys return `401`; insufficient scope or cross-project access returns `403`.
 
 ## F01 Trace Foundation
 

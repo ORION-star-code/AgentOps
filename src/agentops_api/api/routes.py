@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from agentops_api.evaluation import (
     EvaluationResultCreate,
@@ -23,12 +23,50 @@ from agentops_api.observability import (
     build_run_detail,
 )
 from agentops_api.rag import RagEvidence
+from agentops_api.security import ApiKeyStore, ApiScope, AuthenticatedPrincipal
 
 router = APIRouter()
+API_KEY_HEADER = "X-AgentOps-API-Key"
 
 
 def get_trace_repository(request: Request) -> TraceRepository:
     return request.app.state.trace_repository
+
+
+def get_api_key_store(request: Request) -> ApiKeyStore:
+    return request.app.state.api_key_store
+
+
+def require_scope(required_scope: ApiScope):
+    def dependency(
+        store: Annotated[ApiKeyStore, Depends(get_api_key_store)],
+        api_key: Annotated[str | None, Header(alias=API_KEY_HEADER)] = None,
+    ) -> AuthenticatedPrincipal:
+        if api_key is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing API key",
+            )
+
+        principal = store.authenticate(api_key)
+        if principal is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid API key",
+            )
+        if not principal.allows(required_scope):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="API key does not have the required scope",
+            )
+        return principal
+
+    return dependency
+
+
+RequireIngest = Annotated[AuthenticatedPrincipal, Depends(require_scope(ApiScope.INGEST))]
+RequireRead = Annotated[AuthenticatedPrincipal, Depends(require_scope(ApiScope.READ))]
+RequireEvaluate = Annotated[AuthenticatedPrincipal, Depends(require_scope(ApiScope.EVALUATE))]
 
 
 @router.get("/health")
@@ -43,7 +81,9 @@ def health() -> dict[str, str]:
 def create_run(
     payload: AgentRunCreate,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
 ) -> AgentRun:
+    _ensure_project_access(principal, payload.project_id)
     return repository.create_run(payload)
 
 
@@ -51,11 +91,9 @@ def create_run(
 def get_run(
     run_id: str,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireRead,
 ) -> AgentRun:
-    run = repository.get_run(run_id)
-    if run is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
-    return run
+    return _get_authorized_run(repository, run_id, principal)
 
 
 @router.post(
@@ -67,7 +105,9 @@ def append_run_event(
     run_id: str,
     payload: RunEventCreate,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
 ) -> RunEvent:
+    _get_authorized_run(repository, run_id, principal)
     try:
         return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
@@ -78,7 +118,9 @@ def append_run_event(
 def list_run_events(
     run_id: str,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireRead,
 ) -> list[RunEvent]:
+    _get_authorized_run(repository, run_id, principal)
     try:
         return repository.list_events(run_id)
     except RunNotFoundError as exc:
@@ -89,10 +131,9 @@ def list_run_events(
 def get_run_detail(
     run_id: str,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireRead,
 ) -> RunDetail:
-    run = repository.get_run(run_id)
-    if run is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+    run = _get_authorized_run(repository, run_id, principal)
     return build_run_detail(run, repository.list_events(run_id))
 
 
@@ -105,7 +146,9 @@ def append_rag_evidence(
     run_id: str,
     evidence: RagEvidence,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
 ) -> RunEvent:
+    _get_authorized_run(repository, run_id, principal)
     payload = RunEventCreate(
         type=RunEventType.RAG_RETRIEVAL,
         name="rag_evidence",
@@ -126,7 +169,9 @@ def append_evaluation_result(
     run_id: str,
     evaluation: EvaluationResultCreate,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireEvaluate,
 ) -> RunEvent:
+    _get_authorized_run(repository, run_id, principal)
     result = build_evaluation_result(evaluation)
     payload = RunEventCreate(
         type=RunEventType.EVALUATION,
@@ -140,5 +185,28 @@ def append_evaluation_result(
 
 
 @router.post("/v1/regressions/compare", response_model=RegressionReport)
-def compare_regression(payload: RegressionComparisonCreate) -> RegressionReport:
+def compare_regression(
+    payload: RegressionComparisonCreate,
+    principal: RequireEvaluate,
+) -> RegressionReport:
     return build_regression_report(payload)
+
+
+def _get_authorized_run(
+    repository: TraceRepository,
+    run_id: str,
+    principal: AuthenticatedPrincipal,
+) -> AgentRun:
+    run = repository.get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+    _ensure_project_access(principal, run.project_id)
+    return run
+
+
+def _ensure_project_access(principal: AuthenticatedPrincipal, project_id: str) -> None:
+    if principal.project_id != project_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API key cannot access this project",
+        )

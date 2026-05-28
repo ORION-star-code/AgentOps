@@ -1,10 +1,5 @@
-from fastapi.testclient import TestClient
-
-from agentops_api.main import create_app
-
-
-def test_run_ingestion_and_timeline_query(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_run_ingestion_and_timeline_query(make_client) -> None:
+    client = make_client()
 
     create_run_response = client.post(
         "/v1/runs",
@@ -55,8 +50,8 @@ def test_run_ingestion_and_timeline_query(tmp_path) -> None:
     assert [event["sequence"] for event in events_response.json()] == [1, 2]
 
 
-def test_unknown_run_event_append_returns_404(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_unknown_run_event_append_returns_404(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/runs/missing-run/events",
@@ -66,8 +61,8 @@ def test_unknown_run_event_append_returns_404(tmp_path) -> None:
     assert response.status_code == 404
 
 
-def test_invalid_event_type_returns_422(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_invalid_event_type_returns_422(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(
@@ -78,8 +73,8 @@ def test_invalid_event_type_returns_422(tmp_path) -> None:
     assert response.status_code == 422
 
 
-def test_oversized_payload_returns_422(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_oversized_payload_returns_422(make_client) -> None:
+    client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
 
     response = client.post(

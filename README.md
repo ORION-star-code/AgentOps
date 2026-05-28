@@ -6,7 +6,13 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, and run detail foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, and API key security foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, and return a developer-facing run detail payload.
+
+All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
+
+```powershell
+$env:AGENTOPS_API_KEYS='[{"key":"local-dev-key","project_id":"demo-project","scopes":["ingest","read","evaluate","admin"]}]'
+```
 
 ## Current API
 

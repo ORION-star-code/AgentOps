@@ -59,3 +59,9 @@
 - Reason: The UI and debugging workflow need one stable payload showing what happened, what tools were called, what was retrieved, how quality was judged, what was spent, and where failures occurred.
 - Rejected alternatives: Persist a separate run detail snapshot that could drift from the append-only timeline.
 - Constraints: Run detail remains derived from canonical events; future UI should consume this contract rather than querying multiple low-level endpoints.
+
+## 2026-05-28: Protect `/v1` APIs with project-bound API keys
+- Decision: Require `X-AgentOps-API-Key` for every `/v1` endpoint and bind each key to one `project_id` plus explicit scopes: `ingest`, `read`, `evaluate`, or `admin`.
+- Reason: Agent traces, tool payloads, RAG evidence, and evaluation results can contain sensitive data, so the API needs a concrete security boundary before SDK or UI expansion.
+- Rejected alternatives: Leave `/v1` unauthenticated during MVP, add a global development bypass, or let tests silently skip authentication.
+- Constraints: `GET /health` remains public; `admin` satisfies scope checks but does not bypass project isolation; local credentials are configured through `AGENTOPS_API_KEYS` or explicit test injection.

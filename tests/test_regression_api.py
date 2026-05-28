@@ -1,8 +1,3 @@
-from fastapi.testclient import TestClient
-
-from agentops_api.main import create_app
-
-
 def _subject(run_id: str, version: str, metrics: list[dict]) -> dict:
     return {
         "run_id": run_id,
@@ -16,8 +11,8 @@ def _subject(run_id: str, version: str, metrics: list[dict]) -> dict:
     }
 
 
-def test_compare_regression_flags_candidate_regression(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_compare_regression_flags_candidate_regression(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/regressions/compare",
@@ -50,8 +45,8 @@ def test_compare_regression_flags_candidate_regression(tmp_path) -> None:
     assert [metric["regressed"] for metric in report["metrics"]] == [True, True]
 
 
-def test_compare_regression_flags_candidate_improvement(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_compare_regression_flags_candidate_improvement(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/regressions/compare",
@@ -73,8 +68,8 @@ def test_compare_regression_flags_candidate_improvement(tmp_path) -> None:
     assert response.json()["status"] == "improved"
 
 
-def test_compare_regression_rejects_metric_mismatch(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_compare_regression_rejects_metric_mismatch(make_client) -> None:
+    client = make_client()
 
     response = client.post(
         "/v1/regressions/compare",

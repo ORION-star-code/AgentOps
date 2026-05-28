@@ -1,10 +1,5 @@
-from fastapi.testclient import TestClient
-
-from agentops_api.main import create_app
-
-
-def test_run_detail_contract_aggregates_timeline(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_run_detail_contract_aggregates_timeline(make_client) -> None:
+    client = make_client()
     run = client.post(
         "/v1/runs",
         json={"project_id": "demo-project", "name": "Debug RAG answer"},
@@ -91,8 +86,8 @@ def test_run_detail_contract_aggregates_timeline(tmp_path) -> None:
     assert detail["errors"][0]["name"] == "retryable_tool_timeout"
 
 
-def test_unknown_run_detail_returns_404(tmp_path) -> None:
-    client = TestClient(create_app(tmp_path / "agentops.db"))
+def test_unknown_run_detail_returns_404(make_client) -> None:
+    client = make_client()
 
     response = client.get("/v1/runs/missing-run/detail")
 

@@ -50,6 +50,41 @@
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "passing",
       "evidence": "2026-05-28: Implemented RunDetail and RunDetailSummary contracts plus GET /v1/runs/{run_id}/detail. The detail payload returns run metadata, ordered timeline, grouped messages/model calls/tool calls/RAG evidence/evaluations/errors, total token spend, and total latency. Final validation passed via scripts/check.ps1 with Ruff, 39 pytest tests, and harness validation."
+    },
+    {
+      "id": "F06",
+      "behavior": "Protect all /v1 APIs with API key authentication, scope checks, and project isolation.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-05-28: Implemented X-AgentOps-API-Key authentication, project-bound API key credentials, ingest/read/evaluate/admin scopes, project ownership checks for run-scoped APIs, and explicit test API keys. Validation passed via scripts/check.ps1 with Ruff, 45 pytest tests, and harness validation."
+    },
+    {
+      "id": "F07",
+      "behavior": "Redact sensitive JSON fields before persistence and define trace retention configuration.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned for Production Readiness Sprint 1; not started."
+    },
+    {
+      "id": "F08",
+      "behavior": "Improve trace ingestion correctness with restricted generic event types, concurrent sequence safety, and run lifecycle transitions.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned for Production Readiness Sprint 1; not started."
+    },
+    {
+      "id": "F09",
+      "behavior": "Add scalable timeline query controls with limit, cursor, and event type filtering.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned for Production Readiness Sprint 1; not started."
+    },
+    {
+      "id": "F10",
+      "behavior": "Make evaluation and regression results reproducible with evaluator/rubric versioning and persisted comparison reports.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned for Production Readiness Sprint 1; not started."
     }
   ]
 }
