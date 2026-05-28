@@ -100,3 +100,81 @@ class RunEvent(BaseModel):
     name: str | None
     timestamp: datetime
     payload: JsonObject
+
+
+class RunDetailSummary(BaseModel):
+    """Computed overview for a developer-facing run detail view."""
+
+    event_count: int
+    message_count: int
+    model_call_count: int
+    tool_call_count: int
+    rag_retrieval_count: int
+    evaluation_count: int
+    error_count: int
+    total_tokens: int
+    total_latency_ms: int
+
+
+class RunDetail(BaseModel):
+    """Aggregated run detail contract for debugging one Agent execution."""
+
+    run: AgentRun
+    summary: RunDetailSummary
+    timeline: list[RunEvent]
+    messages: list[RunEvent]
+    model_calls: list[RunEvent]
+    tool_calls: list[RunEvent]
+    rag_evidence: list[RunEvent]
+    evaluations: list[RunEvent]
+    errors: list[RunEvent]
+
+
+def build_run_detail(run: AgentRun, events: list[RunEvent]) -> RunDetail:
+    """Build an inspectable run detail payload from an ordered event timeline."""
+
+    messages = _events_of_type(events, RunEventType.MESSAGE)
+    model_calls = _events_of_type(events, RunEventType.MODEL_CALL)
+    tool_calls = _events_of_type(events, RunEventType.TOOL_CALL)
+    rag_evidence = _events_of_type(events, RunEventType.RAG_RETRIEVAL)
+    evaluations = _events_of_type(events, RunEventType.EVALUATION)
+    errors = _events_of_type(events, RunEventType.ERROR)
+    summary = RunDetailSummary(
+        event_count=len(events),
+        message_count=len(messages),
+        model_call_count=len(model_calls),
+        tool_call_count=len(tool_calls),
+        rag_retrieval_count=len(rag_evidence),
+        evaluation_count=len(evaluations),
+        error_count=len(errors),
+        total_tokens=sum(_extract_int(event.payload, "token_count") for event in events),
+        total_latency_ms=sum(_extract_int(event.payload, "latency_ms") for event in events),
+    )
+
+    return RunDetail(
+        run=run,
+        summary=summary,
+        timeline=events,
+        messages=messages,
+        model_calls=model_calls,
+        tool_calls=tool_calls,
+        rag_evidence=rag_evidence,
+        evaluations=evaluations,
+        errors=errors,
+    )
+
+
+def _events_of_type(events: list[RunEvent], event_type: RunEventType) -> list[RunEvent]:
+    return [event for event in events if event.type == event_type]
+
+
+def _extract_int(payload: JsonObject, key: str) -> int:
+    value = payload.get(key)
+    if isinstance(value, int):
+        return value
+    nested = payload.get("usage")
+    if isinstance(nested, dict):
+        nested_value = nested.get(key)
+        if isinstance(nested_value, int):
+            return nested_value
+    return 0

@@ -8,6 +8,9 @@ from agentops_api.observability.schemas import (
     RunEventCreate,
     RunEventType,
     RunStatus,
+    RunDetail,
+    RunDetailSummary,
+    build_run_detail,
 )
 
 __all__ = [
@@ -19,5 +22,8 @@ __all__ = [
     "RunEventType",
     "RunNotFoundError",
     "RunStatus",
+    "RunDetail",
+    "RunDetailSummary",
     "TraceRepository",
+    "build_run_detail",
 ]

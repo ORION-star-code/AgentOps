@@ -18,7 +18,9 @@ from agentops_api.observability import (
     RunEventCreate,
     RunEventType,
     RunNotFoundError,
+    RunDetail,
     TraceRepository,
+    build_run_detail,
 )
 from agentops_api.rag import RagEvidence
 
@@ -81,6 +83,17 @@ def list_run_events(
         return repository.list_events(run_id)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+
+
+@router.get("/v1/runs/{run_id}/detail", response_model=RunDetail)
+def get_run_detail(
+    run_id: str,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+) -> RunDetail:
+    run = repository.get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+    return build_run_detail(run, repository.list_events(run_id))
 
 
 @router.post(
