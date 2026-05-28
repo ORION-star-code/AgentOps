@@ -13,6 +13,8 @@ from agentops_api.observability.schemas import (
     AgentRunCreate,
     RunEvent,
     RunEventCreate,
+    RunDetailSummary,
+    RunEventType,
     RunStatus,
     now_utc,
 )
@@ -171,15 +173,102 @@ class TraceRepository:
             connection.close()
         return event
 
-    def list_events(self, run_id: str) -> list[RunEvent]:
+    def list_events(
+        self,
+        run_id: str,
+        *,
+        limit: int | None = None,
+        after_sequence: int | None = None,
+        event_type: RunEventType | None = None,
+    ) -> list[RunEvent]:
+        if self.get_run(run_id) is None:
+            raise RunNotFoundError(run_id)
+        conditions = ["run_id = ?"]
+        parameters: list[Any] = [run_id]
+        if after_sequence is not None:
+            conditions.append("sequence > ?")
+            parameters.append(after_sequence)
+        if event_type is not None:
+            conditions.append("type = ?")
+            parameters.append(event_type.value)
+
+        query = f"""
+            SELECT * FROM run_events
+            WHERE {" AND ".join(conditions)}
+            ORDER BY sequence ASC
+        """
+        if limit is not None:
+            query += " LIMIT ?"
+            parameters.append(limit)
+
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [_row_to_event(row) for row in rows]
+
+    def list_recent_events(self, run_id: str, *, limit: int) -> list[RunEvent]:
         if self.get_run(run_id) is None:
             raise RunNotFoundError(run_id)
         with self._connect() as connection:
             rows = connection.execute(
-                "SELECT * FROM run_events WHERE run_id = ? ORDER BY sequence ASC",
-                (run_id,),
+                """
+                SELECT *
+                FROM (
+                    SELECT * FROM run_events
+                    WHERE run_id = ?
+                    ORDER BY sequence DESC
+                    LIMIT ?
+                )
+                ORDER BY sequence ASC
+                """,
+                (run_id, limit),
             ).fetchall()
         return [_row_to_event(row) for row in rows]
+
+    def get_event_summary(self, run_id: str) -> RunDetailSummary:
+        if self.get_run(run_id) is None:
+            raise RunNotFoundError(run_id)
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS event_count,
+                    SUM(CASE WHEN type = 'message' THEN 1 ELSE 0 END) AS message_count,
+                    SUM(CASE WHEN type = 'model_call' THEN 1 ELSE 0 END) AS model_call_count,
+                    SUM(CASE WHEN type = 'tool_call' THEN 1 ELSE 0 END) AS tool_call_count,
+                    SUM(CASE WHEN type = 'rag_retrieval' THEN 1 ELSE 0 END)
+                        AS rag_retrieval_count,
+                    SUM(CASE WHEN type = 'evaluation' THEN 1 ELSE 0 END) AS evaluation_count,
+                    SUM(CASE WHEN type = 'error' THEN 1 ELSE 0 END) AS error_count,
+                    SUM(
+                        COALESCE(
+                            json_extract(payload, '$.token_count'),
+                            json_extract(payload, '$.usage.token_count'),
+                            0
+                        )
+                    ) AS total_tokens,
+                    SUM(
+                        COALESCE(
+                            json_extract(payload, '$.latency_ms'),
+                            json_extract(payload, '$.usage.latency_ms'),
+                            0
+                        )
+                    ) AS total_latency_ms
+                FROM run_events
+                WHERE run_id = ?
+                """,
+                (run_id,),
+            ).fetchone()
+        return RunDetailSummary(
+            event_count=row["event_count"] or 0,
+            message_count=row["message_count"] or 0,
+            model_call_count=row["model_call_count"] or 0,
+            tool_call_count=row["tool_call_count"] or 0,
+            rag_retrieval_count=row["rag_retrieval_count"] or 0,
+            evaluation_count=row["evaluation_count"] or 0,
+            error_count=row["error_count"] or 0,
+            total_tokens=row["total_tokens"] or 0,
+            total_latency_ms=row["total_latency_ms"] or 0,
+        )
 
     def complete_run(self, run_id: str) -> AgentRun:
         return self._finish_run(run_id, RunStatus.SUCCEEDED)

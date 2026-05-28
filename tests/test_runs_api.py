@@ -50,6 +50,68 @@ def test_run_ingestion_and_timeline_query(make_client) -> None:
     assert [event["sequence"] for event in events_response.json()] == [1, 2]
 
 
+def test_timeline_query_supports_limit_cursor_and_type_filter(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    event_types = ["message", "tool_call", "message", "error", "custom"]
+    for index, event_type in enumerate(event_types, start=1):
+        client.post(
+            f"/v1/runs/{run['id']}/events",
+            json={
+                "type": event_type,
+                "name": f"event-{index}",
+                "payload": {"index": index},
+            },
+        )
+
+    first_page_response = client.get(f"/v1/runs/{run['id']}/events?limit=2")
+    second_page_response = client.get(
+        f"/v1/runs/{run['id']}/events?limit=2&after_sequence=2"
+    )
+    messages_response = client.get(f"/v1/runs/{run['id']}/events?type=message")
+
+    assert first_page_response.status_code == 200
+    assert [event["sequence"] for event in first_page_response.json()] == [1, 2]
+    assert second_page_response.status_code == 200
+    assert [event["sequence"] for event in second_page_response.json()] == [3, 4]
+    assert messages_response.status_code == 200
+    assert [event["sequence"] for event in messages_response.json()] == [1, 3]
+
+
+def test_timeline_query_defaults_to_first_100_events(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    for index in range(105):
+        client.post(
+            f"/v1/runs/{run['id']}/events",
+            json={
+                "type": "custom",
+                "name": f"event-{index}",
+                "payload": {"index": index},
+            },
+        )
+
+    default_response = client.get(f"/v1/runs/{run['id']}/events")
+    tail_response = client.get(f"/v1/runs/{run['id']}/events?after_sequence=100")
+
+    assert default_response.status_code == 200
+    assert len(default_response.json()) == 100
+    assert [event["sequence"] for event in default_response.json()] == list(range(1, 101))
+    assert tail_response.status_code == 200
+    assert [event["sequence"] for event in tail_response.json()] == [101, 102, 103, 104, 105]
+
+
+def test_timeline_query_rejects_invalid_limit(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+
+    zero_response = client.get(f"/v1/runs/{run['id']}/events?limit=0")
+    too_large_response = client.get(f"/v1/runs/{run['id']}/events?limit=501")
+
+    assert zero_response.status_code == 422
+    assert too_large_response.status_code == 422
+
+
 def test_unknown_run_event_append_returns_404(make_client) -> None:
     client = make_client()
 

@@ -76,8 +76,8 @@
       "id": "F09",
       "behavior": "Add scalable timeline query controls with limit, cursor, and event type filtering.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned for Production Readiness Sprint 1; not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Added GET /v1/runs/{run_id}/events query controls with limit, after_sequence, and type filtering. Default limit is 100 and max limit is 500. Run detail now returns full summary counts with a recent 100-event timeline page. Validation passed via scripts/check.ps1 with Ruff, 71 pytest tests, and harness validation."
     },
     {
       "id": "F10",

@@ -77,3 +77,9 @@
 - Reason: Typed RAG and evaluation payloads need their own validation, and finished Agent runs should be immutable for ordinary ingestion.
 - Rejected alternatives: Let clients send all event types through `/events`, auto-finish runs from error events, or allow silent writes after terminal status.
 - Constraints: SQLite sequence assignment uses `BEGIN IMMEDIATE` and busy timeout for MVP concurrency; terminal writes return `409`; future admin repair flows can be added explicitly instead of hidden bypasses.
+
+## 2026-05-28: Page timeline APIs before adding UI scale
+- Decision: Make `GET /v1/runs/{run_id}/events` return a bounded page by default, with `limit`, `after_sequence`, and `type` controls; make run detail return a full summary plus the latest 100 timeline events.
+- Reason: Agent runs can produce large traces, and UI/API consumers need stable pages instead of unbounded timeline payloads.
+- Rejected alternatives: Keep returning all events, use offset pagination, or make run detail omit full summary counts.
+- Constraints: The default event page is 100, max page size is 500, cursor pagination uses server-assigned `sequence`, and full export remains a future explicit endpoint.

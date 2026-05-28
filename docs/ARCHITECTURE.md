@@ -100,7 +100,21 @@ GET /v1/runs/{run_id}/events  ---->  ordered timeline
 - `POST /v1/runs/{run_id}/fail`
 - `POST /v1/runs/{run_id}/cancel`
 - `POST /v1/runs/{run_id}/events`
-- `GET /v1/runs/{run_id}/events`
+- `GET /v1/runs/{run_id}/events?limit=100&after_sequence=0&type=tool_call`
+
+## F09 Timeline Query Scalability
+
+Timeline query APIs return bounded pages:
+
+- `limit`: page size, default `100`, maximum `500`.
+- `after_sequence`: cursor; returns events with sequence greater than this value.
+- `type`: optional event type filter, such as `message`, `tool_call`, or `error`.
+
+The event list endpoint returns events in ascending sequence order. Invalid limits return `422`.
+
+Run detail returns a full run summary plus the latest 100 timeline events, also in ascending sequence order. This keeps the developer detail contract useful without forcing large runs to load every event into the response.
+
+Full trace export remains a future explicit endpoint instead of being hidden behind the normal detail view.
 
 ## F08 Trace Ingestion Correctness
 

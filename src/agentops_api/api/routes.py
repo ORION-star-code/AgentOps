@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from agentops_api.evaluation import (
     EvaluationResultCreate,
@@ -28,6 +28,8 @@ from agentops_api.security import ApiKeyStore, ApiScope, AuthenticatedPrincipal
 
 router = APIRouter()
 API_KEY_HEADER = "X-AgentOps-API-Key"
+DEFAULT_EVENT_LIMIT = 100
+MAX_EVENT_LIMIT = 500
 GENERIC_EVENT_TYPES = {
     RunEventType.MESSAGE,
     RunEventType.MODEL_CALL,
@@ -133,10 +135,18 @@ def list_run_events(
     run_id: str,
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
     principal: RequireRead,
+    limit: Annotated[int, Query(ge=1, le=MAX_EVENT_LIMIT)] = DEFAULT_EVENT_LIMIT,
+    after_sequence: Annotated[int | None, Query(ge=0)] = None,
+    event_type: Annotated[RunEventType | None, Query(alias="type")] = None,
 ) -> list[RunEvent]:
     _get_authorized_run(repository, run_id, principal)
     try:
-        return repository.list_events(run_id)
+        return repository.list_events(
+            run_id,
+            limit=limit,
+            after_sequence=after_sequence,
+            event_type=event_type,
+        )
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
 
@@ -148,7 +158,9 @@ def get_run_detail(
     principal: RequireRead,
 ) -> RunDetail:
     run = _get_authorized_run(repository, run_id, principal)
-    return build_run_detail(run, repository.list_events(run_id))
+    summary = repository.get_event_summary(run_id)
+    timeline = repository.list_recent_events(run_id, limit=DEFAULT_EVENT_LIMIT)
+    return build_run_detail(run, timeline, summary=summary)
 
 
 @router.post(

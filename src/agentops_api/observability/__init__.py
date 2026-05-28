@@ -16,6 +16,7 @@ from agentops_api.observability.schemas import (
     RunDetail,
     RunDetailSummary,
     build_run_detail,
+    summarize_events,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "RunDetailSummary",
     "TraceRepository",
     "build_run_detail",
+    "summarize_events",
 ]

@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F08 trace ingestion correctness complete
+- Latest checkpoint: F09 timeline query scalability complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -44,6 +44,9 @@
 - [x] SQLite event sequence assignment now runs inside `BEGIN IMMEDIATE` with a busy timeout
 - [x] Run lifecycle endpoints added: `/complete`, `/fail`, and `/cancel`
 - [x] Terminal runs reject further timeline, RAG evidence, and evaluation writes
+- [x] F09 timeline events query supports `limit`, `after_sequence`, and `type`
+- [x] Timeline query defaults to 100 events and rejects limits above 500
+- [x] Run detail now returns full run summary plus the latest 100 timeline events
 
 ## In Progress
 - None
@@ -52,6 +55,6 @@
 - None recorded
 
 ## Next Steps
-1. Implement F09 timeline query scalability with limit, cursor, and event type filtering.
-2. Implement F10 evaluation/regression reproducibility with evaluator and rubric versioning.
+1. Implement F10 evaluation/regression reproducibility with evaluator and rubric versioning.
+2. Add persisted regression reports after the versioned evaluation contract is stable.
 3. Add SDK/UI coverage only after the security and ingestion foundations are stable.

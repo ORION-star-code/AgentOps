@@ -86,6 +86,30 @@ def test_run_detail_contract_aggregates_timeline(make_client) -> None:
     assert detail["errors"][0]["name"] == "retryable_tool_timeout"
 
 
+def test_run_detail_returns_full_summary_with_recent_timeline_page(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    for index in range(105):
+        client.post(
+            f"/v1/runs/{run['id']}/events",
+            json={
+                "type": "custom",
+                "name": f"event-{index}",
+                "payload": {"token_count": 1, "latency_ms": 2},
+            },
+        )
+
+    response = client.get(f"/v1/runs/{run['id']}/detail")
+
+    assert response.status_code == 200
+    detail = response.json()
+    assert detail["summary"]["event_count"] == 105
+    assert detail["summary"]["total_tokens"] == 105
+    assert detail["summary"]["total_latency_ms"] == 210
+    assert len(detail["timeline"]) == 100
+    assert [event["sequence"] for event in detail["timeline"]] == list(range(6, 106))
+
+
 def test_unknown_run_detail_returns_404(make_client) -> None:
     client = make_client()
 

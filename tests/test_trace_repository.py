@@ -76,6 +76,60 @@ def test_concurrent_appends_generate_unique_sequences(tmp_path) -> None:
     assert [event.sequence for event in events] == list(range(1, 21))
 
 
+def test_list_events_supports_limit_cursor_and_type_filter(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+    event_types = [
+        RunEventType.MESSAGE,
+        RunEventType.TOOL_CALL,
+        RunEventType.MESSAGE,
+        RunEventType.ERROR,
+        RunEventType.MESSAGE,
+    ]
+    for index, event_type in enumerate(event_types, start=1):
+        repository.append_event(
+            run.id,
+            RunEventCreate(
+                type=event_type,
+                name=f"event-{index}",
+                payload={"token_count": index, "latency_ms": index * 10},
+            ),
+        )
+
+    first_page = repository.list_events(run.id, limit=2)
+    second_page = repository.list_events(run.id, limit=2, after_sequence=2)
+    messages = repository.list_events(run.id, event_type=RunEventType.MESSAGE)
+    summary = repository.get_event_summary(run.id)
+
+    assert [event.sequence for event in first_page] == [1, 2]
+    assert [event.sequence for event in second_page] == [3, 4]
+    assert [event.sequence for event in messages] == [1, 3, 5]
+    assert summary.event_count == 5
+    assert summary.message_count == 3
+    assert summary.tool_call_count == 1
+    assert summary.error_count == 1
+    assert summary.total_tokens == 15
+    assert summary.total_latency_ms == 150
+
+
+def test_list_recent_events_returns_latest_page_in_sequence_order(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+    for index in range(1, 6):
+        repository.append_event(
+            run.id,
+            RunEventCreate(
+                type=RunEventType.CUSTOM,
+                name=f"event-{index}",
+                payload={"index": index},
+            ),
+        )
+
+    recent = repository.list_recent_events(run.id, limit=3)
+
+    assert [event.sequence for event in recent] == [3, 4, 5]
+
+
 def test_finishing_run_sets_status_and_ended_at(tmp_path) -> None:
     repository = TraceRepository(tmp_path / "agentops.db")
     complete_run = repository.create_run(AgentRunCreate(project_id="demo-project"))

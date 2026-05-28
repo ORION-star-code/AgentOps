@@ -25,11 +25,13 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `POST /v1/runs/{run_id}/fail`
 - `POST /v1/runs/{run_id}/cancel`
 - `POST /v1/runs/{run_id}/events`
-- `GET /v1/runs/{run_id}/events`
+- `GET /v1/runs/{run_id}/events?limit=100&after_sequence=0&type=tool_call`
 - `POST /v1/runs/{run_id}/rag/evidence`
 - `POST /v1/runs/{run_id}/evaluations`
 - `POST /v1/regressions/compare`
 - `GET /v1/runs/{run_id}/detail`
+
+Timeline queries default to 100 events and accept up to 500 events per page. Use `after_sequence` as a cursor and `type` to filter by event type. Run detail returns full summary counts plus the latest 100 timeline events.
 
 ## Project Documents
 

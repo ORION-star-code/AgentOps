@@ -130,8 +130,8 @@ class RunDetail(BaseModel):
     errors: list[RunEvent]
 
 
-def build_run_detail(run: AgentRun, events: list[RunEvent]) -> RunDetail:
-    """Build an inspectable run detail payload from an ordered event timeline."""
+def summarize_events(events: list[RunEvent]) -> RunDetailSummary:
+    """Summarize a timeline or timeline page."""
 
     messages = _events_of_type(events, RunEventType.MESSAGE)
     model_calls = _events_of_type(events, RunEventType.MODEL_CALL)
@@ -139,7 +139,8 @@ def build_run_detail(run: AgentRun, events: list[RunEvent]) -> RunDetail:
     rag_evidence = _events_of_type(events, RunEventType.RAG_RETRIEVAL)
     evaluations = _events_of_type(events, RunEventType.EVALUATION)
     errors = _events_of_type(events, RunEventType.ERROR)
-    summary = RunDetailSummary(
+
+    return RunDetailSummary(
         event_count=len(events),
         message_count=len(messages),
         model_call_count=len(model_calls),
@@ -151,9 +152,25 @@ def build_run_detail(run: AgentRun, events: list[RunEvent]) -> RunDetail:
         total_latency_ms=sum(_extract_int(event.payload, "latency_ms") for event in events),
     )
 
+
+def build_run_detail(
+    run: AgentRun,
+    events: list[RunEvent],
+    summary: RunDetailSummary | None = None,
+) -> RunDetail:
+    """Build an inspectable run detail payload from an ordered event timeline."""
+
+    messages = _events_of_type(events, RunEventType.MESSAGE)
+    model_calls = _events_of_type(events, RunEventType.MODEL_CALL)
+    tool_calls = _events_of_type(events, RunEventType.TOOL_CALL)
+    rag_evidence = _events_of_type(events, RunEventType.RAG_RETRIEVAL)
+    evaluations = _events_of_type(events, RunEventType.EVALUATION)
+    errors = _events_of_type(events, RunEventType.ERROR)
+    detail_summary = summary or summarize_events(events)
+
     return RunDetail(
         run=run,
-        summary=summary,
+        summary=detail_summary,
         timeline=events,
         messages=messages,
         model_calls=model_calls,
