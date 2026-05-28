@@ -4,7 +4,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from agentops_api.evaluation import EvaluationResultCreate, build_evaluation_result
+from agentops_api.evaluation import (
+    EvaluationResultCreate,
+    RegressionComparisonCreate,
+    RegressionReport,
+    build_evaluation_result,
+    build_regression_report,
+)
 from agentops_api.observability import (
     AgentRun,
     AgentRunCreate,
@@ -118,3 +124,8 @@ def append_evaluation_result(
         return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+
+
+@router.post("/v1/regressions/compare", response_model=RegressionReport)
+def compare_regression(payload: RegressionComparisonCreate) -> RegressionReport:
+    return build_regression_report(payload)
