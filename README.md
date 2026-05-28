@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace and RAG evidence foundation. The API can create Agent runs, append timeline events, and record structured RAG retrieval evidence for later evaluation.
+This repository has a working trace, RAG evidence, and answer quality evaluation foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, and persist evaluation results for later regression comparison.
 
 ## Current API
 
@@ -16,6 +16,7 @@ This repository has a working trace and RAG evidence foundation. The API can cre
 - `POST /v1/runs/{run_id}/events`
 - `GET /v1/runs/{run_id}/events`
 - `POST /v1/runs/{run_id}/rag/evidence`
+- `POST /v1/runs/{run_id}/evaluations`
 
 ## Project Documents
 

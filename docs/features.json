@@ -34,8 +34,8 @@
       "id": "F03",
       "behavior": "Run automated answer quality checks for hallucination risk, groundedness, and trustworthiness.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned product capability seeded during framework bootstrap; implementation not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Implemented EvaluationResult, EvaluationMetric, metric names, metric directions, and pass/warn/fail verdict computation for groundedness, citation accuracy, hallucination risk, and trustworthiness. Added POST /v1/runs/{run_id}/evaluations, which persists evaluation results as evaluation timeline events. Validation passed with ruff, 30 pytest tests, and harness validation via scripts/check.ps1."
     },
     {
       "id": "F04",

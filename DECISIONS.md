@@ -41,3 +41,9 @@
 - Reason: Retrieval evidence is part of the Agent execution timeline and should be visible alongside messages, model calls, tool calls, and errors.
 - Rejected alternatives: Separate RAG persistence before query and evaluation patterns are stable.
 - Constraints: RAG evidence must be validated before being written into the append-only event log.
+
+## 2026-05-28: Store evaluation results as typed timeline events
+- Decision: Persist answer quality evaluations through `RunEvent(type="evaluation")`.
+- Reason: Evaluation results explain whether a specific answer in a specific run was grounded, cited, trustworthy, and low-risk, so they belong beside the trace and RAG evidence that produced the answer.
+- Rejected alternatives: Dedicated evaluation tables before regression comparison requirements are clear.
+- Constraints: Metric scores are normalized to `[0, 1]`; verdict computation remains deterministic until an external judge runner is added.

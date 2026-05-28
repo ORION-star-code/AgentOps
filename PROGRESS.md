@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F02 RAG evidence foundation complete
-- Last validation: 2026-05-27, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
+- Latest checkpoint: F03 evaluation foundation complete
+- Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
 ## Completed
@@ -21,6 +21,10 @@
 - [x] RAG evidence validation rules added for chunks, citations, and hit status
 - [x] `/v1/runs/{run_id}/rag/evidence` ingestion API added
 - [x] RAG evidence is persisted as `rag_retrieval` timeline events
+- [x] F03 evaluation result schemas added
+- [x] Evaluation metric normalization and verdict computation added
+- [x] `/v1/runs/{run_id}/evaluations` ingestion API added
+- [x] Evaluation results are persisted as `evaluation` timeline events
 
 ## In Progress
 - None
@@ -29,6 +33,6 @@
 - None recorded
 
 ## Next Steps
-1. Start `F03` by defining automated answer quality evaluation results.
-2. Connect groundedness, citation accuracy, hallucination risk, and trustworthiness checks to the existing run timeline.
+1. Start `F04` by defining regression comparison between baseline and candidate evaluation results.
+2. Add prompt/model/version metadata required to compare Agent changes safely.
 3. Keep WIP=1 and update `docs/features.json` with evidence after each passing verification.

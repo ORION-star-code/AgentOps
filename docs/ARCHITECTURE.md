@@ -89,6 +89,42 @@ GET /v1/runs/{run_id}/events
 
 - `POST /v1/runs/{run_id}/rag/evidence`
 
+## F03 Evaluation Foundation
+
+Answer quality evaluation is stored as a typed `evaluation` event in the same run timeline:
+
+```text
+Evaluator / judge / deterministic check
+        |
+        v
+POST /v1/runs/{run_id}/evaluations
+        |
+        v
+RunEvent(type="evaluation", payload=EvaluationResult)
+        |
+        v
+GET /v1/runs/{run_id}/events
+```
+
+### Evaluation Contract
+
+- `EvaluationResult`: `answer`, `evaluator_name`, `rag_event_id`, `verdict`, `metrics`, `metadata`.
+- `EvaluationMetric`: `name`, `score`, `threshold`, `direction`, `passed`, `rationale`.
+- Metric names: `groundedness`, `citation_accuracy`, `hallucination_risk`, `trustworthiness`.
+- Verdicts: `pass`, `warn`, `fail`.
+
+### Evaluation Rules
+
+- Scores and thresholds are normalized to the `[0, 1]` range.
+- `groundedness`, `citation_accuracy`, and `trustworthiness` pass when score is greater than or equal to threshold.
+- `hallucination_risk` passes when score is less than or equal to threshold.
+- Metric names must be unique per evaluation result.
+- Overall verdict is `pass` when all metrics pass, `fail` when no metrics pass, and `warn` for partial pass.
+
+### Current Evaluation API
+
+- `POST /v1/runs/{run_id}/evaluations`
+
 ## Validation Boundary
 
 Every implementation step must preserve:
