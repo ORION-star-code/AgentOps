@@ -116,3 +116,32 @@ def test_unknown_run_rag_evidence_returns_404(make_client) -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_rag_evidence_redacts_nested_chunk_metadata(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+
+    response = client.post(
+        f"/v1/runs/{run['id']}/rag/evidence",
+        json={
+            "query": "What policy applies?",
+            "hit_status": "hit",
+            "chunks": [
+                {
+                    "chunk_id": "chunk-1",
+                    "source_uri": "kb://policy/123",
+                    "content_preview": "The policy applies to enterprise users.",
+                    "metadata": {"cookie": "session=secret", "section": "policy"},
+                }
+            ],
+            "citations": [{"chunk_id": "chunk-1"}],
+        },
+    )
+
+    assert response.status_code == 201
+    payload = response.json()["payload"]
+    assert payload["chunks"][0]["metadata"]["cookie"] == "[REDACTED]"
+    assert payload["chunks"][0]["metadata"]["section"] == "policy"
+    assert payload["_agentops_redaction"]["redaction_count"] == 1
+    assert "session=secret" not in str(payload)

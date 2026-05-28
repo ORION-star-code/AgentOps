@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F06 security boundary and project isolation complete
+- Latest checkpoint: F07 redaction and retention configuration complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -36,6 +36,10 @@
 - [x] API keys are bound to project IDs and `ingest`, `read`, `evaluate`, or `admin` scopes
 - [x] Run creation, run reads, timeline writes, RAG evidence writes, and evaluation writes enforce project ownership
 - [x] Security tests cover missing keys, invalid keys, cross-project access, and insufficient scopes
+- [x] F07 recursive JSON redaction added before SQLite persistence
+- [x] Run metadata and event payload redaction evidence is recorded under `_agentops_redaction`
+- [x] Default sensitive keys include `api_key`, `token`, `password`, `secret`, `authorization`, and `cookie`
+- [x] `AGENTOPS_RETENTION_DAYS` configuration added with default indefinite local retention
 
 ## In Progress
 - None
@@ -44,6 +48,6 @@
 - None recorded
 
 ## Next Steps
-1. Implement F07 redaction and retention before storing sensitive real-world trace payloads.
-2. Implement F08 trace ingestion correctness, including event type restrictions, sequence safety, and run lifecycle transitions.
+1. Implement F08 trace ingestion correctness, including event type restrictions, sequence safety, and run lifecycle transitions.
+2. Implement F09 timeline query scalability with limit, cursor, and event type filtering.
 3. Add SDK/UI coverage only after the security and ingestion foundations are stable.

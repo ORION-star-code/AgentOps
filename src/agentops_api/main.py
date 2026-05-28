@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from agentops_api.api import router
 from agentops_api.observability import DEFAULT_DB_PATH, TraceRepository
+from agentops_api.privacy import load_retention_config
 from agentops_api.security import ApiKeyCredential, ApiKeyStore, load_api_key_credentials
 
 
@@ -20,7 +21,12 @@ def create_app(
         summary="Observability and automated evaluation for LangGraph and RAG Agents.",
         version="0.1.0",
     )
-    app.state.trace_repository = TraceRepository(db_path or DEFAULT_DB_PATH)
+    retention_config = load_retention_config(os.getenv("AGENTOPS_RETENTION_DAYS"))
+    app.state.retention_config = retention_config
+    app.state.trace_repository = TraceRepository(
+        db_path or DEFAULT_DB_PATH,
+        retention_config=retention_config,
+    )
     credentials = (
         list(api_keys)
         if api_keys is not None

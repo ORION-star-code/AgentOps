@@ -83,3 +83,24 @@ def test_oversized_payload_returns_422(make_client) -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_run_api_returns_redacted_metadata(make_client) -> None:
+    client = make_client()
+
+    create_response = client.post(
+        "/v1/runs",
+        json={
+            "project_id": "demo-project",
+            "metadata": {"api_key": "sk-live-secret", "safe": "visible"},
+        },
+    )
+    run = create_response.json()
+    get_response = client.get(f"/v1/runs/{run['id']}")
+
+    assert create_response.status_code == 201
+    assert run["metadata"]["api_key"] == "[REDACTED]"
+    assert run["metadata"]["safe"] == "visible"
+    assert run["metadata"]["_agentops_redaction"]["redaction_count"] == 1
+    assert get_response.json()["metadata"]["api_key"] == "[REDACTED]"
+    assert "sk-live-secret" not in str(get_response.json())

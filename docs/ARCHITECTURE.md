@@ -10,6 +10,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 
 - `agentops_api.api`: HTTP routes and request/response wiring.
 - `agentops_api.security`: API key authentication, scope checks, and project isolation.
+- `agentops_api.privacy`: Sensitive JSON redaction and retention configuration.
 - `agentops_api.observability`: Agent run traces, reasoning timeline, tool calls, token usage, latency, and errors.
 - `agentops_api.rag`: Retrieval queries, chunks, citations, hit/miss signals, and grounding evidence.
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
@@ -37,6 +38,26 @@ All `/v1` APIs require an `X-AgentOps-API-Key` header. API keys are configured a
 - `admin` satisfies scope checks for its bound project, but does not bypass project isolation.
 - Run-scoped APIs verify that the stored run `project_id` matches the authenticated API key project.
 - Missing or invalid API keys return `401`; insufficient scope or cross-project access returns `403`.
+
+## F07 Privacy Boundary
+
+Run metadata and event payloads are redacted before SQLite persistence. The repository applies one recursive redaction layer for every ingestion path, including generic timeline events, RAG evidence events, and evaluation events.
+
+### Redaction Rules
+
+- Default sensitive key names: `api_key`, `token`, `password`, `secret`, `authorization`, and `cookie`.
+- Common suffix forms such as `access_token`, `client_secret`, and `user_password` are redacted.
+- Non-sensitive usage fields such as `token_count` are preserved.
+- Redacted values are replaced with `[REDACTED]`.
+- Redaction evidence is added under `_agentops_redaction` with `redaction_count` and `redacted_fields`.
+- This is an MVP field-name redactor, not a full DLP system.
+
+### Retention Configuration
+
+- Local trace retention defaults to indefinite.
+- `AGENTOPS_RETENTION_DAYS` accepts a positive integer retention window.
+- The configuration is loaded at app startup and stored on the app/repository boundary.
+- Scheduled cleanup is intentionally deferred until a background job or maintenance command exists.
 
 ## F01 Trace Foundation
 

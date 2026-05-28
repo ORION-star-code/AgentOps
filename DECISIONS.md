@@ -65,3 +65,9 @@
 - Reason: Agent traces, tool payloads, RAG evidence, and evaluation results can contain sensitive data, so the API needs a concrete security boundary before SDK or UI expansion.
 - Rejected alternatives: Leave `/v1` unauthenticated during MVP, add a global development bypass, or let tests silently skip authentication.
 - Constraints: `GET /health` remains public; `admin` satisfies scope checks but does not bypass project isolation; local credentials are configured through `AGENTOPS_API_KEYS` or explicit test injection.
+
+## 2026-05-28: Redact sensitive JSON fields before SQLite persistence
+- Decision: Apply recursive field-name based redaction to run metadata and event payloads in the repository before writing SQLite rows.
+- Reason: Trace payloads can contain secrets from Agent tools, headers, retrievers, or evaluator metadata; a write-before-persist boundary protects every ingestion path consistently.
+- Rejected alternatives: Redact only at API response time, rely on clients to remove secrets, or implement full DLP before the MVP store is stable.
+- Constraints: This is a rule-based MVP redactor, not full DLP; redaction evidence is stored under `_agentops_redaction`; `AGENTOPS_RETENTION_DAYS` defines retention configuration, while scheduled cleanup is deferred until background job infrastructure exists.

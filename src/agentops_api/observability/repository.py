@@ -16,6 +16,7 @@ from agentops_api.observability.schemas import (
     RunStatus,
     now_utc,
 )
+from agentops_api.privacy import RetentionConfig, redact_json_object
 
 DEFAULT_DB_PATH = Path(".agentops") / "agentops.db"
 
@@ -27,8 +28,13 @@ class RunNotFoundError(LookupError):
 class TraceRepository:
     """Persist Agent runs and append-only timeline events in SQLite."""
 
-    def __init__(self, db_path: str | Path = DEFAULT_DB_PATH) -> None:
+    def __init__(
+        self,
+        db_path: str | Path = DEFAULT_DB_PATH,
+        retention_config: RetentionConfig | None = None,
+    ) -> None:
         self.db_path = Path(db_path)
+        self.retention_config = retention_config or RetentionConfig()
         if self.db_path != Path(":memory:"):
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.initialize()
@@ -67,6 +73,7 @@ class TraceRepository:
             )
 
     def create_run(self, payload: AgentRunCreate) -> AgentRun:
+        metadata = redact_json_object(payload.metadata, path_prefix="metadata").value
         run = AgentRun(
             id=str(uuid4()),
             project_id=payload.project_id,
@@ -75,7 +82,7 @@ class TraceRepository:
             status=RunStatus.RUNNING,
             started_at=now_utc(),
             ended_at=None,
-            metadata=payload.metadata,
+            metadata=metadata,
         )
         with self._connect() as connection:
             connection.execute(
@@ -109,6 +116,7 @@ class TraceRepository:
         return _row_to_run(row)
 
     def append_event(self, run_id: str, payload: RunEventCreate) -> RunEvent:
+        redacted_payload = redact_json_object(payload.payload, path_prefix="payload").value
         with self._connect() as connection:
             with connection:
                 run_exists = connection.execute(
@@ -129,7 +137,7 @@ class TraceRepository:
                     type=payload.type,
                     name=payload.name,
                     timestamp=now_utc(),
-                    payload=payload.payload,
+                    payload=redacted_payload,
                 )
                 connection.execute(
                     """

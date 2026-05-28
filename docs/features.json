@@ -62,8 +62,8 @@
       "id": "F07",
       "behavior": "Redact sensitive JSON fields before persistence and define trace retention configuration.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned for Production Readiness Sprint 1; not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Implemented recursive write-before-persist redaction for run metadata and event payloads, including RAG nested metadata. Added redaction evidence under _agentops_redaction and AGENTOPS_RETENTION_DAYS configuration with default indefinite retention. Validation passed via scripts/check.ps1 with Ruff, 56 pytest tests, and harness validation."
     },
     {
       "id": "F08",

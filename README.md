@@ -14,6 +14,8 @@ All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configur
 $env:AGENTOPS_API_KEYS='[{"key":"local-dev-key","project_id":"demo-project","scopes":["ingest","read","evaluate","admin"]}]'
 ```
 
+Trace metadata and event payloads are redacted before persistence when sensitive field names such as `api_key`, `token`, `password`, `secret`, `authorization`, or `cookie` are found. Local retention defaults to indefinite; set `AGENTOPS_RETENTION_DAYS` to a positive integer to configure a retention window for future cleanup jobs.
+
 ## Current API
 
 - `GET /health`
