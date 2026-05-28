@@ -4,6 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from agentops_api.evaluation import EvaluationResultCreate, build_evaluation_result
 from agentops_api.observability import (
     AgentRun,
     AgentRunCreate,
@@ -90,6 +91,28 @@ def append_rag_evidence(
         type=RunEventType.RAG_RETRIEVAL,
         name="rag_evidence",
         payload=evidence.model_dump(mode="json"),
+    )
+    try:
+        return repository.append_event(run_id, payload)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+
+
+@router.post(
+    "/v1/runs/{run_id}/evaluations",
+    response_model=RunEvent,
+    status_code=status.HTTP_201_CREATED,
+)
+def append_evaluation_result(
+    run_id: str,
+    evaluation: EvaluationResultCreate,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+) -> RunEvent:
+    result = build_evaluation_result(evaluation)
+    payload = RunEventCreate(
+        type=RunEventType.EVALUATION,
+        name="answer_quality_evaluation",
+        payload=result.model_dump(mode="json"),
     )
     try:
         return repository.append_event(run_id, payload)
