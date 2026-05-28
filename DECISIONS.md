@@ -71,3 +71,9 @@
 - Reason: Trace payloads can contain secrets from Agent tools, headers, retrievers, or evaluator metadata; a write-before-persist boundary protects every ingestion path consistently.
 - Rejected alternatives: Redact only at API response time, rely on clients to remove secrets, or implement full DLP before the MVP store is stable.
 - Constraints: This is a rule-based MVP redactor, not full DLP; redaction evidence is stored under `_agentops_redaction`; `AGENTOPS_RETENTION_DAYS` defines retention configuration, while scheduled cleanup is deferred until background job infrastructure exists.
+
+## 2026-05-28: Harden trace ingestion before scaling timeline queries
+- Decision: Restrict the generic event endpoint to low-level timeline events, require typed endpoints for RAG and evaluation writes, and make run lifecycle terminal through explicit complete/fail/cancel transitions.
+- Reason: Typed RAG and evaluation payloads need their own validation, and finished Agent runs should be immutable for ordinary ingestion.
+- Rejected alternatives: Let clients send all event types through `/events`, auto-finish runs from error events, or allow silent writes after terminal status.
+- Constraints: SQLite sequence assignment uses `BEGIN IMMEDIATE` and busy timeout for MVP concurrency; terminal writes return `409`; future admin repair flows can be added explicitly instead of hidden bypasses.

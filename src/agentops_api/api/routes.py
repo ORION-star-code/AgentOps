@@ -14,6 +14,7 @@ from agentops_api.evaluation import (
 from agentops_api.observability import (
     AgentRun,
     AgentRunCreate,
+    RunAlreadyEndedError,
     RunEvent,
     RunEventCreate,
     RunEventType,
@@ -27,6 +28,13 @@ from agentops_api.security import ApiKeyStore, ApiScope, AuthenticatedPrincipal
 
 router = APIRouter()
 API_KEY_HEADER = "X-AgentOps-API-Key"
+GENERIC_EVENT_TYPES = {
+    RunEventType.MESSAGE,
+    RunEventType.MODEL_CALL,
+    RunEventType.TOOL_CALL,
+    RunEventType.ERROR,
+    RunEventType.CUSTOM,
+}
 
 
 def get_trace_repository(request: Request) -> TraceRepository:
@@ -107,11 +115,17 @@ def append_run_event(
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> RunEvent:
+    _ensure_generic_event_type(payload.type)
     _get_authorized_run(repository, run_id, principal)
     try:
         return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
 
 
 @router.get("/v1/runs/{run_id}/events", response_model=list[RunEvent])
@@ -158,6 +172,11 @@ def append_rag_evidence(
         return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
 
 
 @router.post(
@@ -182,6 +201,65 @@ def append_evaluation_result(
         return repository.append_event(run_id, payload)
     except RunNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
+
+
+@router.post("/v1/runs/{run_id}/complete", response_model=AgentRun)
+def complete_run(
+    run_id: str,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
+) -> AgentRun:
+    _get_authorized_run(repository, run_id, principal)
+    try:
+        return repository.complete_run(run_id)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
+
+
+@router.post("/v1/runs/{run_id}/fail", response_model=AgentRun)
+def fail_run(
+    run_id: str,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
+) -> AgentRun:
+    _get_authorized_run(repository, run_id, principal)
+    try:
+        return repository.fail_run(run_id)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
+
+
+@router.post("/v1/runs/{run_id}/cancel", response_model=AgentRun)
+def cancel_run(
+    run_id: str,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireIngest,
+) -> AgentRun:
+    _get_authorized_run(repository, run_id, principal)
+    try:
+        return repository.cancel_run(run_id)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
 
 
 @router.post("/v1/regressions/compare", response_model=RegressionReport)
@@ -209,4 +287,12 @@ def _ensure_project_access(principal: AuthenticatedPrincipal, project_id: str) -
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="API key cannot access this project",
+        )
+
+
+def _ensure_generic_event_type(event_type: RunEventType) -> None:
+    if event_type not in GENERIC_EVENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Use the typed RAG or evaluation endpoint for this event type",
         )

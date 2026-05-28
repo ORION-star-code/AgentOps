@@ -73,6 +73,27 @@ def test_invalid_event_type_returns_422(make_client) -> None:
     assert response.status_code == 422
 
 
+def test_generic_event_endpoint_rejects_typed_rag_and_evaluation_events(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+
+    rag_response = client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={"type": "rag_retrieval", "payload": {}},
+    )
+    evaluation_response = client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={"type": "evaluation", "payload": {}},
+    )
+
+    assert rag_response.status_code == 422
+    assert evaluation_response.status_code == 422
+    assert rag_response.json()["detail"] == "Use the typed RAG or evaluation endpoint for this event type"
+    assert evaluation_response.json()["detail"] == (
+        "Use the typed RAG or evaluation endpoint for this event type"
+    )
+
+
 def test_oversized_payload_returns_422(make_client) -> None:
     client = make_client()
     run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
@@ -104,3 +125,50 @@ def test_run_api_returns_redacted_metadata(make_client) -> None:
     assert run["metadata"]["_agentops_redaction"]["redaction_count"] == 1
     assert get_response.json()["metadata"]["api_key"] == "[REDACTED]"
     assert "sk-live-secret" not in str(get_response.json())
+
+
+def test_run_lifecycle_endpoints_set_terminal_status(make_client) -> None:
+    client = make_client()
+    complete_run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    failed_run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    canceled_run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+
+    complete_response = client.post(f"/v1/runs/{complete_run['id']}/complete")
+    fail_response = client.post(f"/v1/runs/{failed_run['id']}/fail")
+    cancel_response = client.post(f"/v1/runs/{canceled_run['id']}/cancel")
+
+    assert complete_response.status_code == 200
+    assert complete_response.json()["status"] == "succeeded"
+    assert complete_response.json()["ended_at"] is not None
+    assert fail_response.status_code == 200
+    assert fail_response.json()["status"] == "failed"
+    assert fail_response.json()["ended_at"] is not None
+    assert cancel_response.status_code == 200
+    assert cancel_response.json()["status"] == "canceled"
+    assert cancel_response.json()["ended_at"] is not None
+
+
+def test_finished_run_rejects_event_append_and_second_transition(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    complete_response = client.post(f"/v1/runs/{run['id']}/complete")
+
+    event_response = client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={"type": "message", "payload": {"role": "user"}},
+    )
+    second_transition_response = client.post(f"/v1/runs/{run['id']}/cancel")
+
+    assert complete_response.status_code == 200
+    assert event_response.status_code == 409
+    assert event_response.json()["detail"] == "Run has already ended"
+    assert second_transition_response.status_code == 409
+    assert second_transition_response.json()["detail"] == "Run has already ended"
+
+
+def test_unknown_run_lifecycle_returns_404(make_client) -> None:
+    client = make_client()
+
+    response = client.post("/v1/runs/missing-run/complete")
+
+    assert response.status_code == 404

@@ -98,3 +98,20 @@ def test_unknown_run_evaluation_returns_404(make_client) -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_finished_run_rejects_evaluation_append(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    client.post(f"/v1/runs/{run['id']}/complete")
+
+    response = client.post(
+        f"/v1/runs/{run['id']}/evaluations",
+        json={
+            "answer": "The policy applies to enterprise users.",
+            "metrics": [{"name": "groundedness", "score": 0.8}],
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Run has already ended"

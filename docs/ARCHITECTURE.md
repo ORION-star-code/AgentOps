@@ -96,8 +96,36 @@ GET /v1/runs/{run_id}/events  ---->  ordered timeline
 - `GET /health`
 - `POST /v1/runs`
 - `GET /v1/runs/{run_id}`
+- `POST /v1/runs/{run_id}/complete`
+- `POST /v1/runs/{run_id}/fail`
+- `POST /v1/runs/{run_id}/cancel`
 - `POST /v1/runs/{run_id}/events`
 - `GET /v1/runs/{run_id}/events`
+
+## F08 Trace Ingestion Correctness
+
+Generic timeline ingestion is restricted to low-level event types:
+
+- `message`
+- `model_call`
+- `tool_call`
+- `error`
+- `custom`
+
+RAG retrieval and evaluation events must be written through their typed endpoints so their domain validation cannot be bypassed.
+
+### Lifecycle Rules
+
+- New runs start as `running`.
+- `POST /v1/runs/{run_id}/complete` transitions a run to `succeeded` and sets `ended_at`.
+- `POST /v1/runs/{run_id}/fail` transitions a run to `failed` and sets `ended_at`.
+- `POST /v1/runs/{run_id}/cancel` transitions a run to `canceled` and sets `ended_at`.
+- Terminal runs reject further timeline, RAG evidence, and evaluation writes with `409`.
+- Repeating a terminal transition also returns `409`.
+
+### Sequence Correctness
+
+SQLite event appends wrap the run status check, next sequence calculation, and insert in one `BEGIN IMMEDIATE` transaction. The connection uses a busy timeout so concurrent local writers wait for the write lock instead of racing on `MAX(sequence) + 1`.
 
 ## F02 RAG Evidence Foundation
 

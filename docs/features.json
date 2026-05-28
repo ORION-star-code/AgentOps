@@ -69,8 +69,8 @@
       "id": "F08",
       "behavior": "Improve trace ingestion correctness with restricted generic event types, concurrent sequence safety, and run lifecycle transitions.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned for Production Readiness Sprint 1; not started."
+      "state": "passing",
+      "evidence": "2026-05-28: Restricted generic event ingestion to message/model_call/tool_call/error/custom, added run lifecycle endpoints for complete/fail/cancel, rejected writes after terminal status, and wrapped SQLite sequence assignment in BEGIN IMMEDIATE with busy timeout. Validation passed via scripts/check.ps1 with Ruff, 65 pytest tests, and harness validation."
     },
     {
       "id": "F09",

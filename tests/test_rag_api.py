@@ -145,3 +145,22 @@ def test_rag_evidence_redacts_nested_chunk_metadata(make_client) -> None:
     assert payload["chunks"][0]["metadata"]["section"] == "policy"
     assert payload["_agentops_redaction"]["redaction_count"] == 1
     assert "session=secret" not in str(payload)
+
+
+def test_finished_run_rejects_rag_evidence_append(make_client) -> None:
+    client = make_client()
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+    client.post(f"/v1/runs/{run['id']}/complete")
+
+    response = client.post(
+        f"/v1/runs/{run['id']}/rag/evidence",
+        json={
+            "query": "Unknown policy?",
+            "hit_status": "miss",
+            "chunks": [],
+            "citations": [],
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Run has already ended"

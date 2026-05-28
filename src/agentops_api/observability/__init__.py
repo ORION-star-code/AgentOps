@@ -1,6 +1,11 @@
 """Agent run observability boundaries."""
 
-from agentops_api.observability.repository import DEFAULT_DB_PATH, RunNotFoundError, TraceRepository
+from agentops_api.observability.repository import (
+    DEFAULT_DB_PATH,
+    RunAlreadyEndedError,
+    RunNotFoundError,
+    TraceRepository,
+)
 from agentops_api.observability.schemas import (
     AgentRun,
     AgentRunCreate,
@@ -20,6 +25,7 @@ __all__ = [
     "RunEvent",
     "RunEventCreate",
     "RunEventType",
+    "RunAlreadyEndedError",
     "RunNotFoundError",
     "RunStatus",
     "RunDetail",

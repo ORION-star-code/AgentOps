@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F07 redaction and retention configuration complete
+- Latest checkpoint: F08 trace ingestion correctness complete
 - Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
@@ -40,6 +40,10 @@
 - [x] Run metadata and event payload redaction evidence is recorded under `_agentops_redaction`
 - [x] Default sensitive keys include `api_key`, `token`, `password`, `secret`, `authorization`, and `cookie`
 - [x] `AGENTOPS_RETENTION_DAYS` configuration added with default indefinite local retention
+- [x] F08 generic timeline endpoint now rejects `rag_retrieval` and `evaluation` event types
+- [x] SQLite event sequence assignment now runs inside `BEGIN IMMEDIATE` with a busy timeout
+- [x] Run lifecycle endpoints added: `/complete`, `/fail`, and `/cancel`
+- [x] Terminal runs reject further timeline, RAG evidence, and evaluation writes
 
 ## In Progress
 - None
@@ -48,6 +52,6 @@
 - None recorded
 
 ## Next Steps
-1. Implement F08 trace ingestion correctness, including event type restrictions, sequence safety, and run lifecycle transitions.
-2. Implement F09 timeline query scalability with limit, cursor, and event type filtering.
+1. Implement F09 timeline query scalability with limit, cursor, and event type filtering.
+2. Implement F10 evaluation/regression reproducibility with evaluator and rubric versioning.
 3. Add SDK/UI coverage only after the security and ingestion foundations are stable.

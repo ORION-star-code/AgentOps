@@ -25,6 +25,10 @@ class RunNotFoundError(LookupError):
     """Raised when a run-scoped operation targets an unknown run."""
 
 
+class RunAlreadyEndedError(RuntimeError):
+    """Raised when a write targets a run that has already ended."""
+
+
 class TraceRepository:
     """Persist Agent runs and append-only timeline events in SQLite."""
 
@@ -117,45 +121,54 @@ class TraceRepository:
 
     def append_event(self, run_id: str, payload: RunEventCreate) -> RunEvent:
         redacted_payload = redact_json_object(payload.payload, path_prefix="payload").value
-        with self._connect() as connection:
-            with connection:
-                run_exists = connection.execute(
-                    "SELECT 1 FROM runs WHERE id = ?",
-                    (run_id,),
-                ).fetchone()
-                if run_exists is None:
-                    raise RunNotFoundError(run_id)
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            run_row = connection.execute(
+                "SELECT status FROM runs WHERE id = ?",
+                (run_id,),
+            ).fetchone()
+            if run_row is None:
+                raise RunNotFoundError(run_id)
+            if RunStatus(run_row["status"]) != RunStatus.RUNNING:
+                raise RunAlreadyEndedError(run_id)
 
-                next_sequence = connection.execute(
-                    "SELECT COALESCE(MAX(sequence), 0) + 1 FROM run_events WHERE run_id = ?",
-                    (run_id,),
-                ).fetchone()[0]
-                event = RunEvent(
-                    id=str(uuid4()),
-                    run_id=run_id,
-                    sequence=next_sequence,
-                    type=payload.type,
-                    name=payload.name,
-                    timestamp=now_utc(),
-                    payload=redacted_payload,
+            next_sequence = connection.execute(
+                "SELECT COALESCE(MAX(sequence), 0) + 1 FROM run_events WHERE run_id = ?",
+                (run_id,),
+            ).fetchone()[0]
+            event = RunEvent(
+                id=str(uuid4()),
+                run_id=run_id,
+                sequence=next_sequence,
+                type=payload.type,
+                name=payload.name,
+                timestamp=now_utc(),
+                payload=redacted_payload,
+            )
+            connection.execute(
+                """
+                INSERT INTO run_events (
+                    id, run_id, sequence, type, name, timestamp, payload
                 )
-                connection.execute(
-                    """
-                    INSERT INTO run_events (
-                        id, run_id, sequence, type, name, timestamp, payload
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        event.id,
-                        event.run_id,
-                        event.sequence,
-                        event.type.value,
-                        event.name,
-                        event.timestamp.isoformat(),
-                        _to_json(event.payload),
-                    ),
-                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.id,
+                    event.run_id,
+                    event.sequence,
+                    event.type.value,
+                    event.name,
+                    event.timestamp.isoformat(),
+                    _to_json(event.payload),
+                ),
+            )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
         return event
 
     def list_events(self, run_id: str) -> list[RunEvent]:
@@ -168,11 +181,57 @@ class TraceRepository:
             ).fetchall()
         return [_row_to_event(row) for row in rows]
 
+    def complete_run(self, run_id: str) -> AgentRun:
+        return self._finish_run(run_id, RunStatus.SUCCEEDED)
+
+    def fail_run(self, run_id: str) -> AgentRun:
+        return self._finish_run(run_id, RunStatus.FAILED)
+
+    def cancel_run(self, run_id: str) -> AgentRun:
+        return self._finish_run(run_id, RunStatus.CANCELED)
+
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(self.db_path, timeout=30)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA busy_timeout = 30000")
         return connection
+
+    def _finish_run(self, run_id: str, status: RunStatus) -> AgentRun:
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT * FROM runs WHERE id = ?",
+                (run_id,),
+            ).fetchone()
+            if row is None:
+                raise RunNotFoundError(run_id)
+
+            run = _row_to_run(row)
+            if run.status != RunStatus.RUNNING:
+                raise RunAlreadyEndedError(run_id)
+
+            ended_at = now_utc()
+            connection.execute(
+                """
+                UPDATE runs
+                SET status = ?, ended_at = ?
+                WHERE id = ?
+                """,
+                (status.value, ended_at.isoformat(), run_id),
+            )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+        finished = self.get_run(run_id)
+        if finished is None:
+            raise RunNotFoundError(run_id)
+        return finished
 
 
 def _to_json(value: dict[str, Any]) -> str:

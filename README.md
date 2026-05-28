@@ -21,6 +21,9 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `GET /health`
 - `POST /v1/runs`
 - `GET /v1/runs/{run_id}`
+- `POST /v1/runs/{run_id}/complete`
+- `POST /v1/runs/{run_id}/fail`
+- `POST /v1/runs/{run_id}/cancel`
 - `POST /v1/runs/{run_id}/events`
 - `GET /v1/runs/{run_id}/events`
 - `POST /v1/runs/{run_id}/rag/evidence`

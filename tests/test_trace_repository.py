@@ -1,11 +1,15 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 from pydantic import ValidationError
 
 from agentops_api.observability import (
     AgentRunCreate,
+    RunAlreadyEndedError,
     RunEventCreate,
     RunEventType,
     RunNotFoundError,
+    RunStatus,
     TraceRepository,
 )
 
@@ -47,6 +51,62 @@ def test_appending_events_generates_stable_sequences(tmp_path) -> None:
     assert second.sequence == 2
     assert [event.sequence for event in events] == [1, 2]
     assert [event.id for event in events] == [first.id, second.id]
+
+
+def test_concurrent_appends_generate_unique_sequences(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+
+    def append_event(index: int) -> int:
+        event = repository.append_event(
+            run.id,
+            RunEventCreate(
+                type=RunEventType.CUSTOM,
+                name=f"event-{index}",
+                payload={"index": index},
+            ),
+        )
+        return event.sequence
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        sequences = list(executor.map(append_event, range(20)))
+
+    events = repository.list_events(run.id)
+    assert sorted(sequences) == list(range(1, 21))
+    assert [event.sequence for event in events] == list(range(1, 21))
+
+
+def test_finishing_run_sets_status_and_ended_at(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    complete_run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+    failed_run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+    canceled_run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+
+    completed = repository.complete_run(complete_run.id)
+    failed = repository.fail_run(failed_run.id)
+    canceled = repository.cancel_run(canceled_run.id)
+
+    assert completed.status == RunStatus.SUCCEEDED
+    assert completed.ended_at is not None
+    assert failed.status == RunStatus.FAILED
+    assert failed.ended_at is not None
+    assert canceled.status == RunStatus.CANCELED
+    assert canceled.ended_at is not None
+
+
+def test_finished_run_rejects_lifecycle_and_event_writes(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    run = repository.create_run(AgentRunCreate(project_id="demo-project"))
+    repository.complete_run(run.id)
+
+    with pytest.raises(RunAlreadyEndedError):
+        repository.complete_run(run.id)
+
+    with pytest.raises(RunAlreadyEndedError):
+        repository.append_event(
+            run.id,
+            RunEventCreate(type=RunEventType.MESSAGE, payload={"role": "user"}),
+        )
 
 
 def test_repository_redacts_run_metadata_before_persistence(tmp_path) -> None:
