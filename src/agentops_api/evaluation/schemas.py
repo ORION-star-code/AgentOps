@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
+from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from agentops_api.observability.schemas import JsonObject, validate_json_size
+from agentops_api.observability.schemas import JsonObject, now_utc, validate_json_size
+
+DEFAULT_EVALUATOR_ID = "agentops-rule-evaluator"
+DEFAULT_EVALUATOR_VERSION = "0.1.0"
+DEFAULT_RUBRIC_ID = "agentops-answer-quality"
+DEFAULT_RUBRIC_VERSION = "0.1.0"
+DEFAULT_THRESHOLD_PROFILE = "default"
 
 
 class EvaluationMetricName(StrEnum):
@@ -40,6 +48,14 @@ class RegressionStatus(StrEnum):
     IMPROVED = "improved"
     UNCHANGED = "unchanged"
     REGRESSED = "regressed"
+
+
+class GoldenDatasetRisk(StrEnum):
+    """Risk tier for deterministic golden dataset cases."""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
 
 DEFAULT_METRIC_RULES: dict[EvaluationMetricName, tuple[EvaluationDirection, float]] = {
@@ -79,7 +95,21 @@ class EvaluationResultCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     answer: str = Field(min_length=1, max_length=16000)
-    evaluator_name: str = Field(default="agentops-rule-evaluator", min_length=1, max_length=200)
+    evaluator_name: str = Field(default=DEFAULT_EVALUATOR_ID, min_length=1, max_length=200)
+    evaluator_id: str = Field(default=DEFAULT_EVALUATOR_ID, min_length=1, max_length=200)
+    evaluator_version: str = Field(
+        default=DEFAULT_EVALUATOR_VERSION,
+        min_length=1,
+        max_length=200,
+    )
+    rubric_id: str = Field(default=DEFAULT_RUBRIC_ID, min_length=1, max_length=200)
+    rubric_version: str = Field(default=DEFAULT_RUBRIC_VERSION, min_length=1, max_length=200)
+    judge_model: str | None = Field(default=None, max_length=200)
+    threshold_profile: str = Field(
+        default=DEFAULT_THRESHOLD_PROFILE,
+        min_length=1,
+        max_length=200,
+    )
     rag_event_id: str | None = Field(default=None, max_length=200)
     metrics: list[EvaluationMetricInput] = Field(min_length=1, max_length=20)
     metadata: JsonObject = Field(default_factory=dict)
@@ -102,6 +132,12 @@ class EvaluationResult(BaseModel):
 
     answer: str
     evaluator_name: str
+    evaluator_id: str
+    evaluator_version: str
+    rubric_id: str
+    rubric_version: str
+    judge_model: str | None
+    threshold_profile: str
     rag_event_id: str | None
     verdict: EvaluationVerdict
     metrics: list[EvaluationMetric]
@@ -161,6 +197,9 @@ class MetricRegressionComparison(BaseModel):
 class RegressionReport(BaseModel):
     """Computed regression report for a candidate Agent change."""
 
+    id: str
+    project_id: str
+    created_at: datetime
     baseline_run_id: str
     candidate_run_id: str
     baseline_version: str
@@ -169,12 +208,70 @@ class RegressionReport(BaseModel):
     candidate_prompt_version: str | None
     baseline_model_version: str | None
     candidate_model_version: str | None
+    baseline_evaluator_id: str
+    candidate_evaluator_id: str
+    baseline_evaluator_version: str
+    candidate_evaluator_version: str
+    baseline_rubric_id: str
+    candidate_rubric_id: str
+    baseline_rubric_version: str
+    candidate_rubric_version: str
+    baseline_judge_model: str | None
+    candidate_judge_model: str | None
+    baseline_threshold_profile: str
+    candidate_threshold_profile: str
     baseline_verdict: EvaluationVerdict
     candidate_verdict: EvaluationVerdict
     status: RegressionStatus
     regression_tolerance: float
     metrics: list[MetricRegressionComparison]
     metadata: JsonObject
+
+
+class GoldenDatasetCase(BaseModel):
+    """One deterministic case for future automated Agent evaluation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    case_id: str = Field(min_length=1, max_length=200)
+    user_input: str = Field(min_length=1, max_length=16000)
+    reference_context: list[str] = Field(default_factory=list, max_length=50)
+    expected_tools: list[str] = Field(default_factory=list, max_length=50)
+    expected_tool_args: JsonObject = Field(default_factory=dict)
+    expected_answer: str | None = Field(default=None, max_length=16000)
+    risk_level: GoldenDatasetRisk = GoldenDatasetRisk.MEDIUM
+    approval_required: bool = False
+    judge_rubric: str = Field(min_length=1, max_length=4000)
+    pass_criteria: str = Field(min_length=1, max_length=4000)
+    metadata: JsonObject = Field(default_factory=dict)
+
+    @field_validator("expected_tool_args", "metadata")
+    @classmethod
+    def json_objects_must_fit(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return validate_json_size(value)
+
+
+class GoldenDataset(BaseModel):
+    """Versioned deterministic evaluation dataset contract."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    dataset_id: str = Field(min_length=1, max_length=200)
+    version: str = Field(min_length=1, max_length=200)
+    cases: list[GoldenDatasetCase] = Field(min_length=1)
+    metadata: JsonObject = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def metadata_must_fit(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return validate_json_size(value)
+
+    @model_validator(mode="after")
+    def case_ids_must_be_unique(self) -> GoldenDataset:
+        case_ids = [case.case_id for case in self.cases]
+        if len(case_ids) != len(set(case_ids)):
+            raise ValueError("golden dataset case_id values must be unique")
+        return self
 
 
 def build_evaluation_result(payload: EvaluationResultCreate) -> EvaluationResult:
@@ -192,6 +289,12 @@ def build_evaluation_result(payload: EvaluationResultCreate) -> EvaluationResult
     return EvaluationResult(
         answer=payload.answer,
         evaluator_name=payload.evaluator_name,
+        evaluator_id=payload.evaluator_id,
+        evaluator_version=payload.evaluator_version,
+        rubric_id=payload.rubric_id,
+        rubric_version=payload.rubric_version,
+        judge_model=payload.judge_model,
+        threshold_profile=payload.threshold_profile,
         rag_event_id=payload.rag_event_id,
         verdict=verdict,
         metrics=metrics,
@@ -199,7 +302,13 @@ def build_evaluation_result(payload: EvaluationResultCreate) -> EvaluationResult
     )
 
 
-def build_regression_report(payload: RegressionComparisonCreate) -> RegressionReport:
+def build_regression_report(
+    payload: RegressionComparisonCreate,
+    *,
+    project_id: str = "unscoped",
+    report_id: str | None = None,
+    created_at: datetime | None = None,
+) -> RegressionReport:
     """Compare two evaluations and flag meaningful quality regressions."""
 
     baseline = build_evaluation_result(payload.baseline.evaluation)
@@ -224,6 +333,9 @@ def build_regression_report(payload: RegressionComparisonCreate) -> RegressionRe
         status = RegressionStatus.UNCHANGED
 
     return RegressionReport(
+        id=report_id or str(uuid4()),
+        project_id=project_id,
+        created_at=created_at or now_utc(),
         baseline_run_id=payload.baseline.run_id,
         candidate_run_id=payload.candidate.run_id,
         baseline_version=payload.baseline.version,
@@ -232,6 +344,18 @@ def build_regression_report(payload: RegressionComparisonCreate) -> RegressionRe
         candidate_prompt_version=payload.candidate.prompt_version,
         baseline_model_version=payload.baseline.model_version,
         candidate_model_version=payload.candidate.model_version,
+        baseline_evaluator_id=baseline.evaluator_id,
+        candidate_evaluator_id=candidate.evaluator_id,
+        baseline_evaluator_version=baseline.evaluator_version,
+        candidate_evaluator_version=candidate.evaluator_version,
+        baseline_rubric_id=baseline.rubric_id,
+        candidate_rubric_id=candidate.rubric_id,
+        baseline_rubric_version=baseline.rubric_version,
+        candidate_rubric_version=candidate.rubric_version,
+        baseline_judge_model=baseline.judge_model,
+        candidate_judge_model=candidate.judge_model,
+        baseline_threshold_profile=baseline.threshold_profile,
+        candidate_threshold_profile=candidate.threshold_profile,
         baseline_verdict=baseline.verdict,
         candidate_verdict=candidate.verdict,
         status=status,

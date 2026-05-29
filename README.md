@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, and API key security foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, and API key security foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
 All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
 
@@ -29,9 +29,12 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `POST /v1/runs/{run_id}/rag/evidence`
 - `POST /v1/runs/{run_id}/evaluations`
 - `POST /v1/regressions/compare`
+- `GET /v1/regressions/reports/{report_id}`
 - `GET /v1/runs/{run_id}/detail`
 
 Timeline queries default to 100 events and accept up to 500 events per page. Use `after_sequence` as a cursor and `type` to filter by event type. Run detail returns full summary counts plus the latest 100 timeline events.
+
+Evaluation payloads include evaluator/rubric version metadata, judge model identity, and threshold profile. Regression comparisons are stored as project-scoped reports with ID, creation time, metric deltas, verdicts, and reproducibility metadata so results can be audited after the original request.
 
 ## Project Documents
 

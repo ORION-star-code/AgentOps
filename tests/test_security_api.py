@@ -152,3 +152,17 @@ def test_evaluate_scope_is_required_for_regression_compare(tmp_path) -> None:
 
     assert response.status_code == 403
     assert response.json()["detail"] == "API key does not have the required scope"
+
+
+def test_evaluate_scope_is_required_for_regression_report_read(tmp_path) -> None:
+    client = _client_with_key(
+        tmp_path / "agentops.db",
+        key="read-only-key",
+        project_id="demo-project",
+        scopes=[ApiScope.READ],
+    )
+
+    response = client.get("/v1/regressions/reports/missing-report")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "API key does not have the required scope"

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from agentops_api.observability.schemas import (
@@ -19,6 +19,9 @@ from agentops_api.observability.schemas import (
     now_utc,
 )
 from agentops_api.privacy import RetentionConfig, redact_json_object
+
+if TYPE_CHECKING:
+    from agentops_api.evaluation import RegressionReport
 
 DEFAULT_DB_PATH = Path(".agentops") / "agentops.db"
 
@@ -75,6 +78,22 @@ class TraceRepository:
 
                 CREATE INDEX IF NOT EXISTS idx_run_events_run_sequence
                     ON run_events (run_id, sequence);
+
+                CREATE TABLE IF NOT EXISTS regression_reports (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    baseline_run_id TEXT NOT NULL,
+                    candidate_run_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    report TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_regression_reports_project_created
+                    ON regression_reports (project_id, created_at);
+
+                CREATE INDEX IF NOT EXISTS idx_regression_reports_runs
+                    ON regression_reports (baseline_run_id, candidate_run_id);
                 """
             )
 
@@ -278,6 +297,50 @@ class TraceRepository:
 
     def cancel_run(self, run_id: str) -> AgentRun:
         return self._finish_run(run_id, RunStatus.CANCELED)
+
+    def save_regression_report(self, report: RegressionReport) -> RegressionReport:
+        """Persist a reproducible regression comparison report."""
+
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO regression_reports (
+                    id,
+                    project_id,
+                    created_at,
+                    baseline_run_id,
+                    candidate_run_id,
+                    status,
+                    report
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    report.id,
+                    report.project_id,
+                    report.created_at.isoformat(),
+                    report.baseline_run_id,
+                    report.candidate_run_id,
+                    report.status.value,
+                    _to_json(report.model_dump(mode="json")),
+                ),
+            )
+        return report
+
+    def get_regression_report(self, report_id: str) -> RegressionReport | None:
+        """Fetch a persisted regression comparison report by ID."""
+
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT report FROM regression_reports WHERE id = ?",
+                (report_id,),
+            ).fetchone()
+        if row is None:
+            return None
+
+        from agentops_api.evaluation import RegressionReport
+
+        return RegressionReport.model_validate(_from_json(row["report"]))
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path, timeout=30)

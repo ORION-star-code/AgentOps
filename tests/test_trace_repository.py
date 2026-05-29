@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 from pydantic import ValidationError
 
+from agentops_api.evaluation import RegressionComparisonCreate, build_regression_report
 from agentops_api.observability import (
     AgentRunCreate,
     RunAlreadyEndedError,
@@ -161,6 +162,41 @@ def test_finished_run_rejects_lifecycle_and_event_writes(tmp_path) -> None:
             run.id,
             RunEventCreate(type=RunEventType.MESSAGE, payload={"role": "user"}),
         )
+
+
+def test_repository_persists_regression_reports(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    report = build_regression_report(
+        RegressionComparisonCreate(
+            baseline={
+                "run_id": "baseline-run",
+                "version": "v1",
+                "evaluation": {
+                    "answer": "The policy applies to enterprise users.",
+                    "metrics": [{"name": "trustworthiness", "score": 0.72}],
+                },
+            },
+            candidate={
+                "run_id": "candidate-run",
+                "version": "v2",
+                "evaluation": {
+                    "answer": "The policy applies to enterprise users.",
+                    "metrics": [{"name": "trustworthiness", "score": 0.9}],
+                },
+            },
+        ),
+        project_id="demo-project",
+        report_id="report-001",
+    )
+
+    repository.save_regression_report(report)
+    fetched = repository.get_regression_report("report-001")
+
+    assert fetched is not None
+    assert fetched.id == "report-001"
+    assert fetched.project_id == "demo-project"
+    assert fetched.status == report.status
+    assert fetched.metrics[0].improved is True
 
 
 def test_repository_redacts_run_metadata_before_persistence(tmp_path) -> None:

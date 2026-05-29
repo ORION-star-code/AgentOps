@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F09 timeline query scalability complete
-- Last validation: 2026-05-28, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
+- Latest checkpoint: F10 evaluation/regression reproducibility complete
+- Last validation: 2026-05-29, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
 - Current WIP: none
 
 ## Completed
@@ -47,6 +47,10 @@
 - [x] F09 timeline events query supports `limit`, `after_sequence`, and `type`
 - [x] Timeline query defaults to 100 events and rejects limits above 500
 - [x] Run detail now returns full run summary plus the latest 100 timeline events
+- [x] F10 evaluation results now record evaluator, rubric, judge model, and threshold profile metadata
+- [x] Versioned golden dataset schemas added for deterministic future evaluation suites
+- [x] Regression comparison reports are persisted with report ID, project ID, creation time, verdicts, metric deltas, and reproducibility metadata
+- [x] `/v1/regressions/reports/{report_id}` API added with project-scoped access checks
 
 ## In Progress
 - None
@@ -55,6 +59,6 @@
 - None recorded
 
 ## Next Steps
-1. Implement F10 evaluation/regression reproducibility with evaluator and rubric versioning.
-2. Add persisted regression reports after the versioned evaluation contract is stable.
-3. Add SDK/UI coverage only after the security and ingestion foundations are stable.
+1. Start the next sprint by adding a minimal ingestion SDK or UI trace viewer on top of the stable F01-F10 API contracts.
+2. Add PostgreSQL migration planning before multi-user or hosted deployments.
+3. Add background retention cleanup once a maintenance job boundary exists.

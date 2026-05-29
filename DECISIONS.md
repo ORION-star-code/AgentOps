@@ -83,3 +83,9 @@
 - Reason: Agent runs can produce large traces, and UI/API consumers need stable pages instead of unbounded timeline payloads.
 - Rejected alternatives: Keep returning all events, use offset pagination, or make run detail omit full summary counts.
 - Constraints: The default event page is 100, max page size is 500, cursor pagination uses server-assigned `sequence`, and full export remains a future explicit endpoint.
+
+## 2026-05-29: Make evaluation and regression evidence reproducible
+- Decision: Add evaluator, rubric, judge model, and threshold profile metadata to evaluation results, and persist regression comparison reports in SQLite with a report ID, project ID, creation time, verdicts, metric deltas, and the same reproducibility metadata.
+- Reason: "Did this change get worse?" must be auditable after the API call returns, and historical evaluations need to show which evaluator/rubric/judge contract produced them.
+- Rejected alternatives: Keep regression reports as transient responses only, infer evaluator versions from free-form metadata, or connect a real LLM judge before the deterministic contract is stable.
+- Constraints: Regression report reads are project-scoped through the stored `project_id`; the golden dataset format is schema-only for now; real judge execution and dataset runners remain future work.

@@ -196,7 +196,8 @@ GET /v1/runs/{run_id}/events
 
 ### Evaluation Contract
 
-- `EvaluationResult`: `answer`, `evaluator_name`, `rag_event_id`, `verdict`, `metrics`, `metadata`.
+- `EvaluationResult`: `answer`, evaluator/rubric/judge metadata, `rag_event_id`, `verdict`, `metrics`, `metadata`.
+- Reproducibility fields: `evaluator_id`, `evaluator_version`, `rubric_id`, `rubric_version`, `judge_model`, and `threshold_profile`.
 - `EvaluationMetric`: `name`, `score`, `threshold`, `direction`, `passed`, `rationale`.
 - Metric names: `groundedness`, `citation_accuracy`, `hallucination_risk`, `trustworthiness`.
 - Verdicts: `pass`, `warn`, `fail`.
@@ -246,6 +247,28 @@ RegressionReport(status, metric deltas, version metadata)
 ### Current Regression API
 
 - `POST /v1/regressions/compare`
+- `GET /v1/regressions/reports/{report_id}`
+
+## F10 Evaluation And Regression Reproducibility
+
+Evaluation records carry explicit evaluator and rubric identity so historical quality evidence can be interpreted after prompts, rules, and judge models change:
+
+- `evaluator_id` and `evaluator_version` identify the deterministic evaluator or future judge runner.
+- `rubric_id` and `rubric_version` identify the scoring rubric.
+- `judge_model` identifies the model contract when an external judge is used.
+- `threshold_profile` identifies the configured pass/fail threshold set.
+
+Regression comparisons are persisted in SQLite as `regression_reports` rows. Each report stores:
+
+- `id`, `project_id`, and `created_at`.
+- Baseline and candidate run/version/prompt/model metadata.
+- Baseline and candidate evaluator/rubric/judge/threshold metadata.
+- Baseline and candidate verdicts.
+- Metric-level score deltas, quality deltas, and improved/regressed flags.
+
+The comparison endpoint returns the persisted report, and `GET /v1/regressions/reports/{report_id}` retrieves it later. Report reads enforce project access through the stored report `project_id`.
+
+The golden dataset contract is schema-only in this sprint. It defines versioned deterministic cases with user input, reference context, expected tools, expected tool arguments, risk level, approval requirement, judge rubric, and pass criteria. Dataset runners and external LLM judges are future work.
 
 ## F05 Run Detail Contract
 

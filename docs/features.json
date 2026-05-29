@@ -83,8 +83,8 @@
       "id": "F10",
       "behavior": "Make evaluation and regression results reproducible with evaluator/rubric versioning and persisted comparison reports.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned for Production Readiness Sprint 1; not started."
+      "state": "passing",
+      "evidence": "2026-05-29: Added evaluator_id/evaluator_version, rubric_id/rubric_version, judge_model, and threshold_profile to evaluation results. Added versioned golden dataset schemas and persisted regression reports with report id, project id, created_at, metric deltas, verdicts, and reproducibility metadata. Added GET /v1/regressions/reports/{report_id}. Validation passed via scripts/check.ps1 with Ruff, 78 pytest tests, and harness validation."
     }
   ]
 }

@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 from pydantic import ValidationError
 
@@ -16,6 +18,12 @@ def _subject(run_id: str, version: str, metrics: list[dict]) -> dict:
         "model_version": "gpt-test",
         "evaluation": {
             "answer": "The policy applies to enterprise users.",
+            "evaluator_id": f"evaluator-{version}",
+            "evaluator_version": version,
+            "rubric_id": "answer-quality",
+            "rubric_version": "rubric-v1",
+            "judge_model": "deterministic-rule-engine",
+            "threshold_profile": "strict",
             "metrics": metrics,
         },
     }
@@ -41,12 +49,24 @@ def test_regression_report_flags_quality_drop() -> None:
                 ],
             ),
             regression_tolerance=0.05,
-        )
+        ),
+        project_id="demo-project",
+        report_id="report-001",
+        created_at=datetime(2026, 5, 29, tzinfo=UTC),
     )
 
+    assert report.id == "report-001"
+    assert report.project_id == "demo-project"
+    assert report.created_at == datetime(2026, 5, 29, tzinfo=UTC)
     assert report.status == RegressionStatus.REGRESSED
     assert report.baseline_version == "v1"
     assert report.candidate_version == "v2"
+    assert report.baseline_evaluator_id == "evaluator-v1"
+    assert report.candidate_evaluator_id == "evaluator-v2"
+    assert report.baseline_rubric_id == "answer-quality"
+    assert report.candidate_rubric_version == "rubric-v1"
+    assert report.baseline_judge_model == "deterministic-rule-engine"
+    assert report.candidate_threshold_profile == "strict"
     assert [metric.regressed for metric in report.metrics] == [True, True]
 
 

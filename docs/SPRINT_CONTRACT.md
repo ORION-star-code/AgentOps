@@ -2,8 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F09 timeline query scalability.
-- Next feature: F10 evaluation/regression reproducibility.
+- Current completed feature: F10 evaluation/regression reproducibility.
+- Next feature: to be selected after reviewing SDK, UI, or database migration priorities.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -12,6 +12,7 @@
 - Privacy features include tests proving sensitive values are not persisted and non-sensitive usage fields remain intact.
 - Ingestion correctness features include tests for typed endpoint restrictions, lifecycle transitions, terminal write rejection, and concurrent sequence assignment.
 - Query scalability features include tests for default limits, cursor progression, event type filtering, and invalid limit rejection.
+- Reproducibility features include tests for versioned evaluator/rubric metadata, persisted reports, report lookup, negative access paths, and deterministic golden dataset contracts.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions

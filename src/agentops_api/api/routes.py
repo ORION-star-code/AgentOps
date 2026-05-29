@@ -277,9 +277,24 @@ def cancel_run(
 @router.post("/v1/regressions/compare", response_model=RegressionReport)
 def compare_regression(
     payload: RegressionComparisonCreate,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
     principal: RequireEvaluate,
 ) -> RegressionReport:
-    return build_regression_report(payload)
+    report = build_regression_report(payload, project_id=principal.project_id)
+    return repository.save_regression_report(report)
+
+
+@router.get("/v1/regressions/reports/{report_id}", response_model=RegressionReport)
+def get_regression_report(
+    report_id: str,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireEvaluate,
+) -> RegressionReport:
+    report = repository.get_regression_report(report_id)
+    if report is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Regression report not found")
+    _ensure_project_access(principal, report.project_id)
+    return report
 
 
 def _get_authorized_run(

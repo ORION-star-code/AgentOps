@@ -6,6 +6,12 @@ def test_append_evaluation_to_run_timeline(make_client) -> None:
         f"/v1/runs/{run['id']}/evaluations",
         json={
             "answer": "The policy applies to enterprise users.",
+            "evaluator_id": "groundedness-evaluator",
+            "evaluator_version": "2026.05.29",
+            "rubric_id": "enterprise-policy-rubric",
+            "rubric_version": "v3",
+            "judge_model": "deterministic-rule-engine",
+            "threshold_profile": "strict",
             "rag_event_id": "rag-event-1",
             "metrics": [
                 {"name": "groundedness", "score": 0.88},
@@ -22,6 +28,12 @@ def test_append_evaluation_to_run_timeline(make_client) -> None:
     assert event["name"] == "answer_quality_evaluation"
     assert event["payload"]["verdict"] == "pass"
     assert event["payload"]["rag_event_id"] == "rag-event-1"
+    assert event["payload"]["evaluator_id"] == "groundedness-evaluator"
+    assert event["payload"]["evaluator_version"] == "2026.05.29"
+    assert event["payload"]["rubric_id"] == "enterprise-policy-rubric"
+    assert event["payload"]["rubric_version"] == "v3"
+    assert event["payload"]["judge_model"] == "deterministic-rule-engine"
+    assert event["payload"]["threshold_profile"] == "strict"
     assert [metric["passed"] for metric in event["payload"]["metrics"]] == [
         True,
         True,
