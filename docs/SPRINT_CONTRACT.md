@@ -2,8 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F11 Mimo LLM judge runner.
-- Next feature: F12 Golden Dataset Runner.
+- Current completed feature: F12 Golden Dataset Runner.
+- Next feature: F13 Regression Evaluation Pipeline.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -14,6 +14,7 @@
 - Query scalability features include tests for default limits, cursor progression, event type filtering, and invalid limit rejection.
 - Reproducibility features include tests for versioned evaluator/rubric metadata, persisted reports, report lookup, negative access paths, and deterministic golden dataset contracts.
 - External judge features include mock tests in the default check path and a separate live smoke script that never stores or prints provider API keys.
+- Golden dataset features include deterministic no-network tests, provider-injection tests for external judge modes, per-case failure coverage, and run detail evidence checks.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions

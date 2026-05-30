@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F11 Mimo judge runner complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed; `scripts/smoke-mimo.ps1` live smoke passed with local `AGENTOPS_MIMO_API_KEY`
+- Latest checkpoint: F12 Golden Dataset Runner complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 109 pytest tests, and harness validation; provider-key prefix scan returned no secret matches
 - Current WIP: none
 
 ## Completed
@@ -56,6 +56,11 @@
 - [x] `/v1/runs/{run_id}/evaluations/judge` API added for platform-generated evaluation events
 - [x] Mimo provider mock tests cover success, invalid JSON, missing metrics, invalid scores, timeout, API error, and missing API key
 - [x] `scripts/smoke-mimo.ps1` added for live Mimo verification without storing secrets
+- [x] F12 golden dataset runner implemented with deterministic default mode and explicit Mimo mode
+- [x] `POST /v1/golden-datasets/runs` added with `evaluate` scope and project isolation
+- [x] Dataset executions create normal Agent runs, per-case `evaluation` events, and a compact `custom` summary event
+- [x] Per-case failures are returned without discarding successful evaluation evidence
+- [x] Golden dataset schema, runner, API, auth, cross-project, partial failure, and provider injection tests passed
 
 ## In Progress
 - None
@@ -64,6 +69,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F12 Golden Dataset Runner.
-2. Add deterministic dataset execution tests without depending on live Mimo.
-3. Keep live Mimo smoke separate from default `scripts/check.ps1`.
+1. Start F13 Regression Evaluation Pipeline.
+2. Compare baseline and candidate golden dataset runs using persisted evaluation events.
+3. Keep deterministic regression tests independent of live Mimo.

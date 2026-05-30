@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from agentops_api.evaluation import (
     EvaluationJudgeCreate,
     EvaluationResultCreate,
+    GoldenDatasetRunCreate,
+    GoldenDatasetRunResult,
     MimoJudgeAPIError,
     MimoJudgeNotConfiguredError,
     MimoJudgeProvider,
@@ -16,6 +18,7 @@ from agentops_api.evaluation import (
     RegressionReport,
     build_evaluation_result,
     build_regression_report,
+    run_golden_dataset,
 )
 from agentops_api.observability import (
     AgentRun,
@@ -278,6 +281,25 @@ def append_judge_evaluation_result(
             status_code=status.HTTP_409_CONFLICT,
             detail="Run has already ended",
         ) from exc
+
+
+@router.post(
+    "/v1/golden-datasets/runs",
+    response_model=GoldenDatasetRunResult,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_golden_dataset_run(
+    payload: GoldenDatasetRunCreate,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    judge_provider: Annotated[MimoJudgeProvider, Depends(get_mimo_judge_provider)],
+    principal: RequireEvaluate,
+) -> GoldenDatasetRunResult:
+    _ensure_project_access(principal, payload.project_id)
+    return run_golden_dataset(
+        payload,
+        repository=repository,
+        judge_provider=judge_provider,
+    )
 
 
 @router.post("/v1/runs/{run_id}/complete", response_model=AgentRun)

@@ -58,6 +58,20 @@ class GoldenDatasetRisk(StrEnum):
     HIGH = "high"
 
 
+class GoldenDatasetJudgeMode(StrEnum):
+    """Judge backend used for one golden dataset execution."""
+
+    DETERMINISTIC = "deterministic"
+    MIMO = "mimo"
+
+
+class GoldenDatasetCaseStatus(StrEnum):
+    """Execution status for one golden dataset case."""
+
+    PASSED = "passed"
+    FAILED = "failed"
+
+
 DEFAULT_METRIC_RULES: dict[EvaluationMetricName, tuple[EvaluationDirection, float]] = {
     EvaluationMetricName.GROUNDEDNESS: (EvaluationDirection.GREATER_THAN_OR_EQUAL, 0.7),
     EvaluationMetricName.CITATION_ACCURACY: (EvaluationDirection.GREATER_THAN_OR_EQUAL, 0.7),
@@ -305,7 +319,7 @@ class GoldenDataset(BaseModel):
 
     dataset_id: str = Field(min_length=1, max_length=200)
     version: str = Field(min_length=1, max_length=200)
-    cases: list[GoldenDatasetCase] = Field(min_length=1)
+    cases: list[GoldenDatasetCase] = Field(min_length=1, max_length=200)
     metadata: JsonObject = Field(default_factory=dict)
 
     @field_validator("metadata")
@@ -319,6 +333,66 @@ class GoldenDataset(BaseModel):
         if len(case_ids) != len(set(case_ids)):
             raise ValueError("golden dataset case_id values must be unique")
         return self
+
+
+class GoldenDatasetRunCreate(BaseModel):
+    """Request for executing a versioned golden dataset."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    project_id: str = Field(min_length=1, max_length=200)
+    dataset: GoldenDataset
+    judge_mode: GoldenDatasetJudgeMode = GoldenDatasetJudgeMode.DETERMINISTIC
+    rubric_id: str = Field(default=DEFAULT_RUBRIC_ID, min_length=1, max_length=200)
+    rubric_version: str = Field(default=DEFAULT_RUBRIC_VERSION, min_length=1, max_length=200)
+    threshold_profile: str = Field(
+        default=DEFAULT_THRESHOLD_PROFILE,
+        min_length=1,
+        max_length=200,
+    )
+    metrics: list[EvaluationMetricName] = Field(
+        default_factory=_default_judge_metrics,
+        min_length=1,
+        max_length=4,
+    )
+    metadata: JsonObject = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def metadata_must_fit(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return validate_json_size(value)
+
+    @model_validator(mode="after")
+    def metric_names_must_be_unique(self) -> GoldenDatasetRunCreate:
+        if len(self.metrics) != len(set(self.metrics)):
+            raise ValueError("golden dataset metric names must be unique")
+        return self
+
+
+class GoldenDatasetCaseRunResult(BaseModel):
+    """Result for one golden dataset case execution."""
+
+    case_id: str
+    status: GoldenDatasetCaseStatus
+    event_id: str | None = None
+    evaluation: EvaluationResult | None = None
+    error: str | None = None
+
+
+class GoldenDatasetRunResult(BaseModel):
+    """Aggregate result for a golden dataset execution."""
+
+    run_id: str
+    summary_event_id: str | None = None
+    project_id: str
+    dataset_id: str
+    dataset_version: str
+    judge_mode: GoldenDatasetJudgeMode
+    total_cases: int
+    passed_cases: int
+    failed_cases: int
+    results: list[GoldenDatasetCaseRunResult]
+    metadata: JsonObject
 
 
 def build_evaluation_result(payload: EvaluationResultCreate) -> EvaluationResult:

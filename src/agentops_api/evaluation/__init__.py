@@ -14,6 +14,13 @@ from agentops_api.evaluation.mimo import (
     MimoJudgeTimeoutError,
     load_mimo_judge_config,
 )
+from agentops_api.evaluation.dataset_runner import (
+    CASE_EVALUATION_EVENT_NAME,
+    DETERMINISTIC_GOLDEN_EVALUATOR_ID,
+    DETERMINISTIC_GOLDEN_EVALUATOR_VERSION,
+    SUMMARY_EVENT_NAME,
+    run_golden_dataset,
+)
 from agentops_api.evaluation.schemas import (
     EvaluationDirection,
     EvaluationComparisonSubject,
@@ -26,7 +33,12 @@ from agentops_api.evaluation.schemas import (
     EvaluationVerdict,
     GoldenDataset,
     GoldenDatasetCase,
+    GoldenDatasetCaseRunResult,
+    GoldenDatasetCaseStatus,
+    GoldenDatasetJudgeMode,
     GoldenDatasetRisk,
+    GoldenDatasetRunCreate,
+    GoldenDatasetRunResult,
     MetricRegressionComparison,
     RegressionComparisonCreate,
     RegressionReport,
@@ -36,8 +48,11 @@ from agentops_api.evaluation.schemas import (
 )
 
 __all__ = [
+    "CASE_EVALUATION_EVENT_NAME",
     "DEFAULT_MIMO_BASE_URL",
     "DEFAULT_MIMO_MODEL",
+    "DETERMINISTIC_GOLDEN_EVALUATOR_ID",
+    "DETERMINISTIC_GOLDEN_EVALUATOR_VERSION",
     "EvaluationDirection",
     "EvaluationComparisonSubject",
     "EvaluationJudgeCreate",
@@ -49,7 +64,12 @@ __all__ = [
     "EvaluationVerdict",
     "GoldenDataset",
     "GoldenDatasetCase",
+    "GoldenDatasetCaseRunResult",
+    "GoldenDatasetCaseStatus",
+    "GoldenDatasetJudgeMode",
     "GoldenDatasetRisk",
+    "GoldenDatasetRunCreate",
+    "GoldenDatasetRunResult",
     "MetricRegressionComparison",
     "MIMO_EVALUATOR_ID",
     "MIMO_EVALUATOR_VERSION",
@@ -63,7 +83,9 @@ __all__ = [
     "RegressionComparisonCreate",
     "RegressionReport",
     "RegressionStatus",
+    "SUMMARY_EVENT_NAME",
     "build_evaluation_result",
     "build_regression_report",
     "load_mimo_judge_config",
+    "run_golden_dataset",
 ]

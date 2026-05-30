@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, and API key security foundation. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, and golden dataset runner. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
 All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
 
@@ -37,6 +37,7 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `POST /v1/runs/{run_id}/rag/evidence`
 - `POST /v1/runs/{run_id}/evaluations`
 - `POST /v1/runs/{run_id}/evaluations/judge`
+- `POST /v1/golden-datasets/runs`
 - `POST /v1/regressions/compare`
 - `GET /v1/regressions/reports/{report_id}`
 - `GET /v1/runs/{run_id}/detail`
@@ -46,6 +47,8 @@ Timeline queries default to 100 events and accept up to 500 events per page. Use
 Evaluation payloads include evaluator/rubric version metadata, judge model identity, and threshold profile. Regression comparisons are stored as project-scoped reports with ID, creation time, metric deltas, verdicts, and reproducibility metadata so results can be audited after the original request.
 
 The Mimo judge endpoint calls the configured OpenAI-compatible Mimo model and persists its validated scores as a normal `evaluation` timeline event. Run `powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1` after setting `AGENTOPS_MIMO_API_KEY` to perform a live smoke test.
+
+Golden dataset execution defaults to a deterministic local judge so default validation never depends on network access or paid model quota. `judge_mode="mimo"` can reuse the configured Mimo provider when explicitly requested.
 
 ## Project Documents
 

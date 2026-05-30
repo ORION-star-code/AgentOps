@@ -7,6 +7,8 @@ from agentops_api.evaluation import (
     EvaluationResultCreate,
     EvaluationVerdict,
     GoldenDataset,
+    GoldenDatasetJudgeMode,
+    GoldenDatasetRunCreate,
     build_evaluation_result,
 )
 
@@ -163,4 +165,53 @@ def test_golden_dataset_rejects_duplicate_case_ids() -> None:
             dataset_id="rag-trust-suite",
             version="2026.05.29",
             cases=[case, case],
+        )
+
+
+def test_golden_dataset_run_request_defaults_to_deterministic_judge() -> None:
+    request = GoldenDatasetRunCreate(
+        project_id="demo-project",
+        dataset={
+            "dataset_id": "rag-trust-suite",
+            "version": "2026.05.30",
+            "cases": [
+                {
+                    "case_id": "policy-answer-001",
+                    "user_input": "Who does the policy apply to?",
+                    "reference_context": ["The policy applies to enterprise users."],
+                    "expected_answer": "The policy applies to enterprise users.",
+                    "judge_rubric": "Answer must be grounded.",
+                    "pass_criteria": "All metrics pass.",
+                }
+            ],
+        },
+    )
+
+    assert request.judge_mode == GoldenDatasetJudgeMode.DETERMINISTIC
+    assert request.metrics == [
+        EvaluationMetricName.GROUNDEDNESS,
+        EvaluationMetricName.CITATION_ACCURACY,
+        EvaluationMetricName.HALLUCINATION_RISK,
+        EvaluationMetricName.TRUSTWORTHINESS,
+    ]
+
+
+def test_golden_dataset_run_request_rejects_duplicate_metrics() -> None:
+    with pytest.raises(ValidationError, match="metric names must be unique"):
+        GoldenDatasetRunCreate(
+            project_id="demo-project",
+            dataset={
+                "dataset_id": "rag-trust-suite",
+                "version": "2026.05.30",
+                "cases": [
+                    {
+                        "case_id": "policy-answer-001",
+                        "user_input": "Who does the policy apply to?",
+                        "expected_answer": "The policy applies to enterprise users.",
+                        "judge_rubric": "Answer must be grounded.",
+                        "pass_criteria": "All metrics pass.",
+                    }
+                ],
+            },
+            metrics=["groundedness", "groundedness"],
         )

@@ -97,8 +97,8 @@
       "id": "F12",
       "behavior": "Run versioned golden datasets and generate evaluation results through deterministic or external judge providers.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F11 live smoke is complete."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented POST /v1/golden-datasets/runs with deterministic default mode, explicit Mimo judge mode through provider injection, per-case evaluation events, compact summary events, partial failure reporting, and run detail evidence. Validation passed via scripts/check.ps1 with Ruff, 109 pytest tests, and harness validation. Repository provider-key prefix scan returned no secret matches."
     },
     {
       "id": "F13",

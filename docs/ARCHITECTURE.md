@@ -295,6 +295,41 @@ Live verification is intentionally separated from the default check path:
 - Default validation uses mocked Mimo responses.
 - `scripts/smoke-mimo.ps1` performs a live smoke only when `AGENTOPS_MIMO_API_KEY` is set.
 
+## F12 Golden Dataset Runner
+
+Golden dataset execution turns the F10 dataset contract into repeatable evaluation evidence. The API creates a normal Agent run for each dataset execution, writes one `evaluation` event per successfully evaluated case, writes one compact `custom` summary event, then marks the run as `succeeded`.
+
+```text
+GoldenDataset
+        |
+        v
+POST /v1/golden-datasets/runs
+        |
+        v
+AgentRun(name="Golden dataset: {dataset_id}@{version}")
+        |
+        v
+RunEvent(type="evaluation", name="golden_dataset_case_evaluation")
+        |
+        v
+RunEvent(type="custom", name="golden_dataset_summary")
+```
+
+### Current Dataset API
+
+- `POST /v1/golden-datasets/runs`
+
+The endpoint requires `evaluate` scope and checks that the request `project_id` matches the authenticated API key project. It returns aggregate counts plus ordered per-case results.
+
+### Judge Modes
+
+- `deterministic`: default local mode for repeatable tests and no-network validation.
+- `mimo`: calls the configured Mimo provider explicitly and is tested through injected provider doubles in the default check path.
+
+Individual case failures do not erase successful case evidence. A case without `expected_answer`, a provider failure, or a non-passing evaluation is represented in the per-case result and aggregate failure count while the dataset execution run still completes.
+
+F12 intentionally does not add dataset tables. Querying uses the existing run detail and timeline APIs until longer-term dataset run analytics justify dedicated storage.
+
 ## F05 Run Detail Contract
 
 Run detail is a single developer-facing payload for inspecting one Agent execution:

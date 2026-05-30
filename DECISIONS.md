@@ -95,3 +95,9 @@
 - Reason: AgentOps already has deterministic evaluation and reproducible report contracts; a real judge runner is the smallest next step toward automated answer quality evaluation.
 - Rejected alternatives: Use the Anthropic-compatible Mimo endpoint first, build a sample Agent runtime before evaluator support, or store provider keys in repository files.
 - Constraints: Mimo credentials are loaded only from environment variables; default tests use mocks and do not call the live API; live smoke is separated into `scripts/smoke-mimo.ps1` because it requires network access and a paid/secret key.
+
+## 2026-05-30: Execute golden datasets as normal trace runs
+- Decision: Implement F12 by creating one `AgentRun` per golden dataset execution, writing per-case `evaluation` events plus one compact `custom` summary event, and completing the run instead of adding dataset tables.
+- Reason: The existing append-only event log is already the platform's canonical evidence store, and F12 primarily needs repeatable execution semantics before long-term dataset analytics are designed.
+- Rejected alternatives: Add dedicated dataset run tables immediately, require a background queue for local MVP execution, or make Mimo live calls part of the default validation path.
+- Constraints: Deterministic mode is the default and does not use the network; `mimo` mode is explicit and testable through provider injection; individual case failures are reported without discarding successful case evidence.
