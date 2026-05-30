@@ -14,6 +14,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 - `agentops_api.observability`: Agent run traces, reasoning timeline, tool calls, token usage, latency, and errors.
 - `agentops_api.rag`: Retrieval queries, chunks, citations, hit/miss signals, and grounding evidence.
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
+- `agentops_api.sdk`: Python client for developer ingestion and evaluation workflows.
 
 ## F06 Security Boundary
 
@@ -362,6 +363,45 @@ F13 reuses the existing `regression_reports` table. Each comparable case produce
 - `unchanged` otherwise.
 
 This keeps reports auditable through `GET /v1/regressions/reports/{report_id}` without adding aggregate dataset tables before UI and CI query patterns are clearer.
+
+## F14 Python Ingestion SDK
+
+The SDK is a thin synchronous wrapper around the HTTP API. It does not bypass authentication, project isolation, validation, redaction, or repository behavior; it only reduces integration friction for LangGraph and RAG developers.
+
+```text
+LangGraph/RAG application
+        |
+        v
+AgentOpsClient
+        |
+        v
+HTTP /v1 APIs with X-AgentOps-API-Key
+        |
+        v
+existing API validation, security, redaction, and persistence
+```
+
+### SDK Boundary
+
+- `AgentOpsClient` owns an `httpx.Client` by default.
+- Tests and embedded integrations can inject a compatible HTTP client.
+- API keys are sent as `X-AgentOps-API-Key` per request.
+- The configured `project_id` is used as the default for project-scoped create/compare calls.
+- Non-2xx responses raise `AgentOpsAPIError` with status code and API detail.
+
+### Current SDK Coverage
+
+The SDK covers:
+
+- Run lifecycle: create, get, complete, fail, cancel, detail.
+- Timeline events: append and list with pagination/filter parameters.
+- RAG evidence ingestion.
+- Manual and Mimo judge evaluation ingestion.
+- Golden dataset execution.
+- Golden dataset regression comparison.
+- Regression report lookup.
+
+The SDK stays synchronous in F14 because the local FastAPI/SQLite MVP and most LangGraph callback integrations can use blocking ingestion initially. Async, batching, retries, and background queues are deferred until ingestion volume justifies them.
 
 ## F05 Run Detail Contract
 

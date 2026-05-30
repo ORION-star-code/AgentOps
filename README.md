@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, golden dataset runner, and dataset regression pipeline. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, and Python ingestion SDK. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
 All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
 
@@ -52,6 +52,30 @@ The Mimo judge endpoint calls the configured OpenAI-compatible Mimo model and pe
 Golden dataset execution defaults to a deterministic local judge so default validation never depends on network access or paid model quota. `judge_mode="mimo"` can reuse the configured Mimo provider when explicitly requested.
 
 Golden dataset regression comparison reads completed dataset runs, aligns evaluation events by `case_id`, persists one regression report per comparable case, and returns an aggregate `improved`, `unchanged`, or `regressed` verdict.
+
+## Python SDK
+
+```python
+from agentops_api import AgentOpsClient
+
+with AgentOpsClient(
+    base_url="http://127.0.0.1:8000",
+    api_key="local-dev-key",
+    project_id="demo-project",
+) as client:
+    run = client.create_run(name="LangGraph debug run")
+    run_id = run["id"]
+    client.append_event(run_id, "message", payload={"role": "user", "content": "Hello"})
+    client.append_event(
+        run_id,
+        "tool_call",
+        name="retrieve_documents",
+        payload={"tool_name": "vector_search", "latency_ms": 128, "token_count": 42},
+    )
+    client.complete_run(run_id)
+```
+
+The SDK sends `X-AgentOps-API-Key` automatically, defaults requests to the configured `project_id`, raises `AgentOpsAPIError` for non-2xx responses, and supports injected HTTP clients for tests or embedded tooling.
 
 ## Project Documents
 

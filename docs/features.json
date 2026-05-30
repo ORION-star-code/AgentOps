@@ -111,8 +111,8 @@
       "id": "F14",
       "behavior": "Provide a Python ingestion SDK for creating runs and writing trace, RAG, and evaluation evidence.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after evaluation runner foundations."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented synchronous AgentOpsClient with automatic API key headers, default project_id handling, run lifecycle, timeline, RAG evidence, evaluation, judge evaluation, golden dataset, dataset regression, and report lookup helpers. SDK tests cover header behavior, API error mapping without key leakage, full run lifecycle ingestion, and dataset regression integration. Validation passed with Ruff, 126 pytest tests, and harness validation."
     },
     {
       "id": "F15",

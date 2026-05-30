@@ -107,3 +107,9 @@
 - Reason: Per-case reports preserve the same reproducibility and project-scoped lookup model already used by F10, while the aggregate response gives CI and developers an immediate improved/unchanged/regressed verdict.
 - Rejected alternatives: Add a new dataset regression table immediately, compare only aggregate averages, or allow incomplete/running dataset runs to be compared.
 - Constraints: Baseline and candidate runs must be completed F12 dataset runs from the same project and dataset ID; case ID sets must match exactly; mismatched or malformed evidence is rejected instead of silently skipped.
+
+## 2026-05-30: Keep the first Python SDK as a thin HTTP client
+- Decision: Implement F14 as a synchronous `AgentOpsClient` over the public HTTP API with injectable HTTP client support.
+- Reason: Agent developers need a small integration surface now, while the API remains the security, validation, redaction, and persistence boundary.
+- Rejected alternatives: Build an in-process repository SDK that bypasses HTTP security, add async/batching before ingestion volume is measured, or create a separate package namespace before the project packaging boundary is stable.
+- Constraints: The SDK sends `X-AgentOps-API-Key` per request, defaults project-scoped operations to the configured `project_id`, raises `AgentOpsAPIError` on non-2xx responses, and keeps tests offline through `httpx.MockTransport` plus FastAPI TestClient injection.

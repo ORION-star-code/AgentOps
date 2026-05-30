@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F13 Regression Evaluation Pipeline complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 122 pytest tests, and harness validation
+- Latest checkpoint: F14 Python Ingestion SDK complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 126 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -67,6 +67,11 @@
 - [x] Per-case regression reports are persisted through the existing `regression_reports` store
 - [x] Dataset comparison returns aggregate improved, unchanged, and regressed counts
 - [x] F13 tests cover auth, cross-project access, running run rejection, non-dataset rejection, mismatched cases, persisted report lookup, and deterministic regression detection
+- [x] F14 synchronous Python `AgentOpsClient` implemented
+- [x] SDK sends `X-AgentOps-API-Key` automatically and defaults project-scoped calls to configured `project_id`
+- [x] SDK supports run lifecycle, timeline events, RAG evidence, manual evaluation, Mimo judge evaluation, golden dataset execution, dataset regression comparison, and regression report lookup
+- [x] SDK errors map non-2xx responses to `AgentOpsAPIError` without exposing API keys
+- [x] SDK tests cover mocked HTTP requests, error behavior, complete run lifecycle ingestion, and dataset regression integration
 
 ## In Progress
 - None
@@ -75,6 +80,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F14 Python Ingestion SDK.
-2. Provide a small `AgentOpsClient` for run lifecycle, events, RAG evidence, evaluations, and dataset/regression calls.
-3. Keep SDK tests offline with API integration coverage against temporary SQLite.
+1. Start F15 LangGraph Instrumentation.
+2. Build lightweight callback/helper APIs on top of `AgentOpsClient`.
+3. Use fake graph/stub tests before adding an optional real LangGraph dependency.
