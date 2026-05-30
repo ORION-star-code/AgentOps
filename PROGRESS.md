@@ -2,9 +2,9 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F11 Mimo judge runner implemented; live smoke pending
-- Last validation: 2026-05-30, `python -m pytest` passed with 96 tests and `python -m ruff check .` passed
-- Current WIP: F11 blocked pending a rotated `AGENTOPS_MIMO_API_KEY` environment variable for live smoke
+- Latest checkpoint: F11 Mimo judge runner complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed; `scripts/smoke-mimo.ps1` live smoke passed with local `AGENTOPS_MIMO_API_KEY`
+- Current WIP: none
 
 ## Completed
 - [x] Harness scaffold created on 2026-05-27
@@ -61,9 +61,9 @@
 - None
 
 ## Blocked
-- F11 live smoke is blocked because `AGENTOPS_MIMO_API_KEY` is not set in the environment. The key shared in chat should be rotated before running the smoke test.
+- None recorded
 
 ## Next Steps
-1. Set a rotated `AGENTOPS_MIMO_API_KEY` locally and run `powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1`.
-2. If the live smoke passes, update F11 to `passing` with evidence and run `powershell -ExecutionPolicy Bypass -File scripts/check.ps1`.
-3. After F11 is passing, continue with F12 Golden Dataset Runner.
+1. Start F12 Golden Dataset Runner.
+2. Add deterministic dataset execution tests without depending on live Mimo.
+3. Keep live Mimo smoke separate from default `scripts/check.ps1`.

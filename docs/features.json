@@ -90,8 +90,8 @@
       "id": "F11",
       "behavior": "Use Xiaomi Mimo as an OpenAI-compatible LLM-as-judge provider to generate evaluation timeline events.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1; powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1 with AGENTOPS_MIMO_API_KEY set",
-      "state": "blocked",
-      "evidence": "2026-05-30: Implemented Mimo judge config, provider, POST /v1/runs/{run_id}/evaluations/judge, mock tests, .env.example placeholders, and scripts/smoke-mimo.ps1. Mock validation passed with python -m pytest and python -m ruff check .; live smoke is blocked because AGENTOPS_MIMO_API_KEY is not set in the environment and the chat-exposed key should be rotated before use."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented Mimo judge config, provider, POST /v1/runs/{run_id}/evaluations/judge, mock tests, .env.example placeholders, and scripts/smoke-mimo.ps1. Mock validation passed via scripts/check.ps1 with Ruff, 96 pytest tests, and harness validation. Live smoke passed with AGENTOPS_MIMO_API_KEY set locally, producing a mimo-v2.5-pro evaluation event with verdict pass."
     },
     {
       "id": "F12",

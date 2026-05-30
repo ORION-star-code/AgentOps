@@ -2,9 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F10 evaluation/regression reproducibility.
-- Current blocked feature: F11 Mimo LLM judge runner pending live smoke with a rotated `AGENTOPS_MIMO_API_KEY`.
-- Next feature after F11: F12 Golden Dataset Runner.
+- Current completed feature: F11 Mimo LLM judge runner.
+- Next feature: F12 Golden Dataset Runner.
 
 ## Verification Standards
 - `python harness/validate.py` passes.

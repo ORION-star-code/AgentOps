@@ -8,7 +8,7 @@
 - Code conventions: Ruff configured and passing
 
 ## Cleanup Priorities
-1. Complete F11 live Mimo smoke with a rotated `AGENTOPS_MIMO_API_KEY`.
-2. Add golden dataset execution on top of the Mimo judge provider.
-3. Add PostgreSQL migration planning once SQLite MVP limits are reached.
-4. Add background retention cleanup once a maintenance job boundary exists.
+1. Add golden dataset execution on top of the Mimo judge provider.
+2. Add PostgreSQL migration planning once SQLite MVP limits are reached.
+3. Add background retention cleanup once a maintenance job boundary exists.
+4. Add key rotation and audit logging before hosted multi-user deployments.
