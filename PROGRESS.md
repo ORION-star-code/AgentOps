@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F12 Golden Dataset Runner complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 109 pytest tests, and harness validation; provider-key prefix scan returned no secret matches
+- Latest checkpoint: F13 Regression Evaluation Pipeline complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 122 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -61,6 +61,12 @@
 - [x] Dataset executions create normal Agent runs, per-case `evaluation` events, and a compact `custom` summary event
 - [x] Per-case failures are returned without discarding successful evaluation evidence
 - [x] Golden dataset schema, runner, API, auth, cross-project, partial failure, and provider injection tests passed
+- [x] F13 golden dataset regression comparison implemented
+- [x] `POST /v1/golden-datasets/regressions/compare` added with `evaluate` scope and project ownership checks
+- [x] Completed golden dataset runs are aligned by `metadata.case_id`
+- [x] Per-case regression reports are persisted through the existing `regression_reports` store
+- [x] Dataset comparison returns aggregate improved, unchanged, and regressed counts
+- [x] F13 tests cover auth, cross-project access, running run rejection, non-dataset rejection, mismatched cases, persisted report lookup, and deterministic regression detection
 
 ## In Progress
 - None
@@ -69,6 +75,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F13 Regression Evaluation Pipeline.
-2. Compare baseline and candidate golden dataset runs using persisted evaluation events.
-3. Keep deterministic regression tests independent of live Mimo.
+1. Start F14 Python Ingestion SDK.
+2. Provide a small `AgentOpsClient` for run lifecycle, events, RAG evidence, evaluations, and dataset/regression calls.
+3. Keep SDK tests offline with API integration coverage against temporary SQLite.

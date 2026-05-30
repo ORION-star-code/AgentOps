@@ -330,6 +330,39 @@ Individual case failures do not erase successful case evidence. A case without `
 
 F12 intentionally does not add dataset tables. Querying uses the existing run detail and timeline APIs until longer-term dataset run analytics justify dedicated storage.
 
+## F13 Golden Dataset Regression Pipeline
+
+Golden dataset regression compares two completed F12 runs by reading their persisted `golden_dataset_case_evaluation` events and aligning cases by `metadata.case_id`.
+
+```text
+baseline GoldenDataset run      candidate GoldenDataset run
+        |                               |
+        v                               v
+evaluation events by case_id     evaluation events by case_id
+        \                               /
+         v                             v
+POST /v1/golden-datasets/regressions/compare
+        |
+        v
+per-case RegressionReport rows + aggregate dataset verdict
+```
+
+### Current Dataset Regression API
+
+- `POST /v1/golden-datasets/regressions/compare`
+
+The endpoint requires `evaluate` scope and enforces project ownership on both run IDs. It rejects running runs with `409` and rejects non-dataset runs, mismatched datasets, mismatched case sets, duplicate case IDs, or invalid evaluation payloads with `422`.
+
+### Persistence Strategy
+
+F13 reuses the existing `regression_reports` table. Each comparable case produces one persisted `RegressionReport` with `metadata.agentops_kind = "golden_dataset_case_regression"` and a stable `case_id`. The API response aggregates those report IDs into a dataset-level verdict:
+
+- `regressed` if any case report regressed.
+- `improved` if no case regressed and at least one case improved.
+- `unchanged` otherwise.
+
+This keeps reports auditable through `GET /v1/regressions/reports/{report_id}` without adding aggregate dataset tables before UI and CI query patterns are clearer.
+
 ## F05 Run Detail Contract
 
 Run detail is a single developer-facing payload for inspecting one Agent execution:

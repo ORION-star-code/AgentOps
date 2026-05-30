@@ -104,8 +104,8 @@
       "id": "F13",
       "behavior": "Compare golden dataset baseline and candidate runs and persist regression reports.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F12 dataset execution."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented POST /v1/golden-datasets/regressions/compare. The endpoint aligns completed F12 runs by case_id, rejects running/non-dataset/mismatched evidence, persists one RegressionReport per comparable case, and returns aggregate improved/unchanged/regressed counts. Validation passed with Ruff, 122 pytest tests, and harness validation."
     },
     {
       "id": "F14",

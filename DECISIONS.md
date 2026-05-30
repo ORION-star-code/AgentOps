@@ -101,3 +101,9 @@
 - Reason: The existing append-only event log is already the platform's canonical evidence store, and F12 primarily needs repeatable execution semantics before long-term dataset analytics are designed.
 - Rejected alternatives: Add dedicated dataset run tables immediately, require a background queue for local MVP execution, or make Mimo live calls part of the default validation path.
 - Constraints: Deterministic mode is the default and does not use the network; `mimo` mode is explicit and testable through provider injection; individual case failures are reported without discarding successful case evidence.
+
+## 2026-05-30: Reuse per-case regression reports for dataset comparisons
+- Decision: Implement F13 by aligning completed golden dataset runs by `case_id`, saving one existing `RegressionReport` per comparable case, and returning an aggregate dataset verdict without a new aggregate report table.
+- Reason: Per-case reports preserve the same reproducibility and project-scoped lookup model already used by F10, while the aggregate response gives CI and developers an immediate improved/unchanged/regressed verdict.
+- Rejected alternatives: Add a new dataset regression table immediately, compare only aggregate averages, or allow incomplete/running dataset runs to be compared.
+- Constraints: Baseline and candidate runs must be completed F12 dataset runs from the same project and dataset ID; case ID sets must match exactly; mismatched or malformed evidence is rejected instead of silently skipped.

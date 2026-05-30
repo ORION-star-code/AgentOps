@@ -2,8 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F12 Golden Dataset Runner.
-- Next feature: F13 Regression Evaluation Pipeline.
+- Current completed feature: F13 Regression Evaluation Pipeline.
+- Next feature: F14 Python Ingestion SDK.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -15,6 +15,7 @@
 - Reproducibility features include tests for versioned evaluator/rubric metadata, persisted reports, report lookup, negative access paths, and deterministic golden dataset contracts.
 - External judge features include mock tests in the default check path and a separate live smoke script that never stores or prints provider API keys.
 - Golden dataset features include deterministic no-network tests, provider-injection tests for external judge modes, per-case failure coverage, and run detail evidence checks.
+- Golden dataset regression features include completed-run checks, project ownership checks, case alignment checks, persisted report lookup, and deterministic improved/unchanged/regressed coverage.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions

@@ -7,7 +7,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from agentops_api.evaluation import (
     EvaluationJudgeCreate,
     EvaluationResultCreate,
+    GoldenDatasetRegressionCompareCreate,
+    GoldenDatasetRegressionInputError,
+    GoldenDatasetRegressionResult,
     GoldenDatasetRunCreate,
+    GoldenDatasetRunNotCompleteError,
     GoldenDatasetRunResult,
     MimoJudgeAPIError,
     MimoJudgeNotConfiguredError,
@@ -18,6 +22,7 @@ from agentops_api.evaluation import (
     RegressionReport,
     build_evaluation_result,
     build_regression_report,
+    compare_golden_dataset_runs,
     run_golden_dataset,
 )
 from agentops_api.observability import (
@@ -300,6 +305,38 @@ def create_golden_dataset_run(
         repository=repository,
         judge_provider=judge_provider,
     )
+
+
+@router.post(
+    "/v1/golden-datasets/regressions/compare",
+    response_model=GoldenDatasetRegressionResult,
+)
+def compare_golden_dataset_regression(
+    payload: GoldenDatasetRegressionCompareCreate,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireEvaluate,
+) -> GoldenDatasetRegressionResult:
+    _ensure_project_access(principal, payload.project_id)
+    baseline_run = _get_authorized_run(repository, payload.baseline_run_id, principal)
+    candidate_run = _get_authorized_run(repository, payload.candidate_run_id, principal)
+    try:
+        return compare_golden_dataset_runs(
+            payload,
+            repository=repository,
+            baseline_run=baseline_run,
+            candidate_run=candidate_run,
+            project_id=principal.project_id,
+        )
+    except GoldenDatasetRunNotCompleteError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except GoldenDatasetRegressionInputError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post("/v1/runs/{run_id}/complete", response_model=AgentRun)

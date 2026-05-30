@@ -7,6 +7,7 @@ from agentops_api.evaluation import (
     EvaluationResultCreate,
     EvaluationVerdict,
     GoldenDataset,
+    GoldenDatasetRegressionCompareCreate,
     GoldenDatasetJudgeMode,
     GoldenDatasetRunCreate,
     build_evaluation_result,
@@ -214,4 +215,15 @@ def test_golden_dataset_run_request_rejects_duplicate_metrics() -> None:
                 ],
             },
             metrics=["groundedness", "groundedness"],
+        )
+
+
+def test_golden_dataset_regression_request_rejects_same_run_ids() -> None:
+    with pytest.raises(ValidationError, match="must be different"):
+        GoldenDatasetRegressionCompareCreate(
+            project_id="demo-project",
+            baseline_run_id="same-run",
+            candidate_run_id="same-run",
+            baseline_version="baseline-v1",
+            candidate_version="candidate-v2",
         )

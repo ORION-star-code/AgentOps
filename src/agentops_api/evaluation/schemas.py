@@ -395,6 +395,65 @@ class GoldenDatasetRunResult(BaseModel):
     metadata: JsonObject
 
 
+class GoldenDatasetRegressionCompareCreate(BaseModel):
+    """Request for comparing two completed golden dataset runs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    project_id: str = Field(min_length=1, max_length=200)
+    baseline_run_id: str = Field(min_length=1, max_length=200)
+    candidate_run_id: str = Field(min_length=1, max_length=200)
+    baseline_version: str = Field(min_length=1, max_length=200)
+    candidate_version: str = Field(min_length=1, max_length=200)
+    baseline_prompt_version: str | None = Field(default=None, max_length=200)
+    candidate_prompt_version: str | None = Field(default=None, max_length=200)
+    baseline_model_version: str | None = Field(default=None, max_length=200)
+    candidate_model_version: str | None = Field(default=None, max_length=200)
+    regression_tolerance: float = Field(default=0.05, ge=0, le=1)
+    metadata: JsonObject = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def metadata_must_fit(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return validate_json_size(value)
+
+    @model_validator(mode="after")
+    def runs_must_be_distinct(self) -> GoldenDatasetRegressionCompareCreate:
+        if self.baseline_run_id == self.candidate_run_id:
+            raise ValueError("baseline_run_id and candidate_run_id must be different")
+        return self
+
+
+class GoldenDatasetCaseRegressionReport(BaseModel):
+    """Regression report reference for one dataset case."""
+
+    case_id: str
+    report_id: str
+    status: RegressionStatus
+    baseline_verdict: EvaluationVerdict
+    candidate_verdict: EvaluationVerdict
+    metrics: list[MetricRegressionComparison]
+
+
+class GoldenDatasetRegressionResult(BaseModel):
+    """Aggregate comparison result for two golden dataset runs."""
+
+    project_id: str
+    baseline_run_id: str
+    candidate_run_id: str
+    dataset_id: str
+    baseline_dataset_version: str
+    candidate_dataset_version: str
+    status: RegressionStatus
+    regression_tolerance: float
+    total_cases: int
+    improved_cases: int
+    unchanged_cases: int
+    regressed_cases: int
+    case_reports: list[GoldenDatasetCaseRegressionReport]
+    metadata: JsonObject
+
+
 def build_evaluation_result(payload: EvaluationResultCreate) -> EvaluationResult:
     """Normalize metric rules and compute an aggregate verdict."""
 

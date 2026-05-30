@@ -21,6 +21,11 @@ from agentops_api.evaluation.dataset_runner import (
     SUMMARY_EVENT_NAME,
     run_golden_dataset,
 )
+from agentops_api.evaluation.dataset_regression import (
+    GoldenDatasetRegressionInputError,
+    GoldenDatasetRunNotCompleteError,
+    compare_golden_dataset_runs,
+)
 from agentops_api.evaluation.schemas import (
     EvaluationDirection,
     EvaluationComparisonSubject,
@@ -34,8 +39,11 @@ from agentops_api.evaluation.schemas import (
     GoldenDataset,
     GoldenDatasetCase,
     GoldenDatasetCaseRunResult,
+    GoldenDatasetCaseRegressionReport,
     GoldenDatasetCaseStatus,
     GoldenDatasetJudgeMode,
+    GoldenDatasetRegressionCompareCreate,
+    GoldenDatasetRegressionResult,
     GoldenDatasetRisk,
     GoldenDatasetRunCreate,
     GoldenDatasetRunResult,
@@ -65,11 +73,16 @@ __all__ = [
     "GoldenDataset",
     "GoldenDatasetCase",
     "GoldenDatasetCaseRunResult",
+    "GoldenDatasetCaseRegressionReport",
     "GoldenDatasetCaseStatus",
     "GoldenDatasetJudgeMode",
+    "GoldenDatasetRegressionCompareCreate",
+    "GoldenDatasetRegressionInputError",
+    "GoldenDatasetRegressionResult",
     "GoldenDatasetRisk",
     "GoldenDatasetRunCreate",
     "GoldenDatasetRunResult",
+    "GoldenDatasetRunNotCompleteError",
     "MetricRegressionComparison",
     "MIMO_EVALUATOR_ID",
     "MIMO_EVALUATOR_VERSION",
@@ -86,6 +99,7 @@ __all__ = [
     "SUMMARY_EVENT_NAME",
     "build_evaluation_result",
     "build_regression_report",
+    "compare_golden_dataset_runs",
     "load_mimo_judge_config",
     "run_golden_dataset",
 ]
