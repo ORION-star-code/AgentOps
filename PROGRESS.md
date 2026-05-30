@@ -2,9 +2,9 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F10 evaluation/regression reproducibility complete
-- Last validation: 2026-05-29, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed
-- Current WIP: none
+- Latest checkpoint: F11 Mimo judge runner implemented; live smoke pending
+- Last validation: 2026-05-30, `python -m pytest` passed with 96 tests and `python -m ruff check .` passed
+- Current WIP: F11 blocked pending a rotated `AGENTOPS_MIMO_API_KEY` environment variable for live smoke
 
 ## Completed
 - [x] Harness scaffold created on 2026-05-27
@@ -51,14 +51,19 @@
 - [x] Versioned golden dataset schemas added for deterministic future evaluation suites
 - [x] Regression comparison reports are persisted with report ID, project ID, creation time, verdicts, metric deltas, and reproducibility metadata
 - [x] `/v1/regressions/reports/{report_id}` API added with project-scoped access checks
+- [x] F11 Mimo judge provider implemented with OpenAI-compatible `/chat/completions`
+- [x] Mimo configuration added through environment variables only
+- [x] `/v1/runs/{run_id}/evaluations/judge` API added for platform-generated evaluation events
+- [x] Mimo provider mock tests cover success, invalid JSON, missing metrics, invalid scores, timeout, API error, and missing API key
+- [x] `scripts/smoke-mimo.ps1` added for live Mimo verification without storing secrets
 
 ## In Progress
 - None
 
 ## Blocked
-- None recorded
+- F11 live smoke is blocked because `AGENTOPS_MIMO_API_KEY` is not set in the environment. The key shared in chat should be rotated before running the smoke test.
 
 ## Next Steps
-1. Start the next sprint by adding a minimal ingestion SDK or UI trace viewer on top of the stable F01-F10 API contracts.
-2. Add PostgreSQL migration planning before multi-user or hosted deployments.
-3. Add background retention cleanup once a maintenance job boundary exists.
+1. Set a rotated `AGENTOPS_MIMO_API_KEY` locally and run `powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1`.
+2. If the live smoke passes, update F11 to `passing` with evidence and run `powershell -ExecutionPolicy Bypass -File scripts/check.ps1`.
+3. After F11 is passing, continue with F12 Golden Dataset Runner.

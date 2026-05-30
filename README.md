@@ -14,6 +14,14 @@ All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configur
 $env:AGENTOPS_API_KEYS='[{"key":"local-dev-key","project_id":"demo-project","scopes":["ingest","read","evaluate","admin"]}]'
 ```
 
+Mimo LLM-as-judge integration is configured with environment variables:
+
+```powershell
+$env:AGENTOPS_MIMO_API_KEY='<rotated-mimo-api-key>'
+$env:AGENTOPS_MIMO_BASE_URL='https://token-plan-cn.xiaomimimo.com/v1'
+$env:AGENTOPS_MIMO_MODEL='mimo-v2.5-pro'
+```
+
 Trace metadata and event payloads are redacted before persistence when sensitive field names such as `api_key`, `token`, `password`, `secret`, `authorization`, or `cookie` are found. Local retention defaults to indefinite; set `AGENTOPS_RETENTION_DAYS` to a positive integer to configure a retention window for future cleanup jobs.
 
 ## Current API
@@ -28,6 +36,7 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `GET /v1/runs/{run_id}/events?limit=100&after_sequence=0&type=tool_call`
 - `POST /v1/runs/{run_id}/rag/evidence`
 - `POST /v1/runs/{run_id}/evaluations`
+- `POST /v1/runs/{run_id}/evaluations/judge`
 - `POST /v1/regressions/compare`
 - `GET /v1/regressions/reports/{report_id}`
 - `GET /v1/runs/{run_id}/detail`
@@ -35,6 +44,8 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 Timeline queries default to 100 events and accept up to 500 events per page. Use `after_sequence` as a cursor and `type` to filter by event type. Run detail returns full summary counts plus the latest 100 timeline events.
 
 Evaluation payloads include evaluator/rubric version metadata, judge model identity, and threshold profile. Regression comparisons are stored as project-scoped reports with ID, creation time, metric deltas, verdicts, and reproducibility metadata so results can be audited after the original request.
+
+The Mimo judge endpoint calls the configured OpenAI-compatible Mimo model and persists its validated scores as a normal `evaluation` timeline event. Run `powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1` after setting `AGENTOPS_MIMO_API_KEY` to perform a live smoke test.
 
 ## Project Documents
 

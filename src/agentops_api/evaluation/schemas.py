@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Annotated, Any
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -124,6 +124,53 @@ class EvaluationResultCreate(BaseModel):
         names = [metric.name for metric in self.metrics]
         if len(names) != len(set(names)):
             raise ValueError("evaluation metric names must be unique")
+        return self
+
+
+def _default_judge_metrics() -> list[EvaluationMetricName]:
+    return [
+        EvaluationMetricName.GROUNDEDNESS,
+        EvaluationMetricName.CITATION_ACCURACY,
+        EvaluationMetricName.HALLUCINATION_RISK,
+        EvaluationMetricName.TRUSTWORTHINESS,
+    ]
+
+
+class EvaluationJudgeCreate(BaseModel):
+    """Payload for generating an answer quality evaluation with an external judge."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str = Field(min_length=1, max_length=16000)
+    question: str = Field(min_length=1, max_length=4000)
+    context: list[Annotated[str, Field(max_length=16000)]] = Field(
+        default_factory=list,
+        max_length=50,
+    )
+    rag_event_id: str | None = Field(default=None, max_length=200)
+    rubric_id: str = Field(default=DEFAULT_RUBRIC_ID, min_length=1, max_length=200)
+    rubric_version: str = Field(default=DEFAULT_RUBRIC_VERSION, min_length=1, max_length=200)
+    threshold_profile: str = Field(
+        default=DEFAULT_THRESHOLD_PROFILE,
+        min_length=1,
+        max_length=200,
+    )
+    metrics: list[EvaluationMetricName] = Field(
+        default_factory=_default_judge_metrics,
+        min_length=1,
+        max_length=4,
+    )
+    metadata: JsonObject = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def metadata_must_fit(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return validate_json_size(value)
+
+    @model_validator(mode="after")
+    def metric_names_must_be_unique(self) -> EvaluationJudgeCreate:
+        if len(self.metrics) != len(set(self.metrics)):
+            raise ValueError("judge metric names must be unique")
         return self
 
 

@@ -270,6 +270,31 @@ The comparison endpoint returns the persisted report, and `GET /v1/regressions/r
 
 The golden dataset contract is schema-only in this sprint. It defines versioned deterministic cases with user input, reference context, expected tools, expected tool arguments, risk level, approval requirement, judge rubric, and pass criteria. Dataset runners and external LLM judges are future work.
 
+## F11 Mimo LLM Judge Runner
+
+Mimo is the first real external judge provider. It uses the OpenAI-compatible `/chat/completions` API and produces the same `EvaluationResult` payload that manual evaluations already store.
+
+### Configuration
+
+- `AGENTOPS_MIMO_API_KEY`: Mimo API key, required for live judge calls.
+- `AGENTOPS_MIMO_BASE_URL`: defaults to `https://token-plan-cn.xiaomimimo.com/v1`.
+- `AGENTOPS_MIMO_MODEL`: defaults to `mimo-v2.5-pro`.
+- `AGENTOPS_MIMO_TIMEOUT_SECONDS`: defaults to `30`.
+- `AGENTOPS_MIMO_MAX_RETRIES`: defaults to `1`.
+
+Keys must stay in the environment and must not be committed to repository files.
+
+### Current Mimo API
+
+- `POST /v1/runs/{run_id}/evaluations/judge`
+
+The endpoint requires `evaluate` scope, checks project ownership, rejects terminal runs before calling Mimo, asks Mimo for JSON-only metric scores, validates the returned metrics, and stores the result as a typed `evaluation` timeline event named `mimo_judge_evaluation`.
+
+Live verification is intentionally separated from the default check path:
+
+- Default validation uses mocked Mimo responses.
+- `scripts/smoke-mimo.ps1` performs a live smoke only when `AGENTOPS_MIMO_API_KEY` is set.
+
 ## F05 Run Detail Contract
 
 Run detail is a single developer-facing payload for inspecting one Agent execution:

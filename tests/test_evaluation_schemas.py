@@ -2,6 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from agentops_api.evaluation import (
+    EvaluationJudgeCreate,
     EvaluationMetricName,
     EvaluationResultCreate,
     EvaluationVerdict,
@@ -99,6 +100,29 @@ def test_metric_score_must_be_between_zero_and_one() -> None:
         EvaluationResultCreate(
             answer="The policy applies to enterprise users.",
             metrics=[{"name": "trustworthiness", "score": 1.2}],
+        )
+
+
+def test_judge_payload_defaults_to_all_supported_metrics() -> None:
+    payload = EvaluationJudgeCreate(
+        answer="The policy applies to enterprise users.",
+        question="Who does the policy apply to?",
+    )
+
+    assert payload.metrics == [
+        EvaluationMetricName.GROUNDEDNESS,
+        EvaluationMetricName.CITATION_ACCURACY,
+        EvaluationMetricName.HALLUCINATION_RISK,
+        EvaluationMetricName.TRUSTWORTHINESS,
+    ]
+
+
+def test_judge_payload_rejects_duplicate_metrics() -> None:
+    with pytest.raises(ValidationError, match="judge metric names must be unique"):
+        EvaluationJudgeCreate(
+            answer="The policy applies to enterprise users.",
+            question="Who does the policy apply to?",
+            metrics=["groundedness", "groundedness"],
         )
 
 

@@ -15,13 +15,20 @@ def make_client(tmp_path):
         project_id: str = TEST_PROJECT_ID,
         scopes: list[ApiScope] | None = None,
         include_auth_header: bool = True,
+        mimo_judge_provider=None,
     ) -> TestClient:
         credential = ApiKeyCredential(
             key=TEST_API_KEY,
             project_id=project_id,
             scopes=scopes or [ApiScope.INGEST, ApiScope.READ, ApiScope.EVALUATE],
         )
-        client = TestClient(create_app(tmp_path / "agentops.db", api_keys=[credential]))
+        client = TestClient(
+            create_app(
+                tmp_path / "agentops.db",
+                api_keys=[credential],
+                mimo_judge_provider=mimo_judge_provider,
+            )
+        )
         if include_auth_header:
             client.headers.update({"X-AgentOps-API-Key": TEST_API_KEY})
         return client

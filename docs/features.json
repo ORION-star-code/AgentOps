@@ -85,6 +85,62 @@
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "passing",
       "evidence": "2026-05-29: Added evaluator_id/evaluator_version, rubric_id/rubric_version, judge_model, and threshold_profile to evaluation results. Added versioned golden dataset schemas and persisted regression reports with report id, project id, created_at, metric deltas, verdicts, and reproducibility metadata. Added GET /v1/regressions/reports/{report_id}. Validation passed via scripts/check.ps1 with Ruff, 78 pytest tests, and harness validation."
+    },
+    {
+      "id": "F11",
+      "behavior": "Use Xiaomi Mimo as an OpenAI-compatible LLM-as-judge provider to generate evaluation timeline events.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1; powershell -ExecutionPolicy Bypass -File scripts/smoke-mimo.ps1 with AGENTOPS_MIMO_API_KEY set",
+      "state": "blocked",
+      "evidence": "2026-05-30: Implemented Mimo judge config, provider, POST /v1/runs/{run_id}/evaluations/judge, mock tests, .env.example placeholders, and scripts/smoke-mimo.ps1. Mock validation passed with python -m pytest and python -m ruff check .; live smoke is blocked because AGENTOPS_MIMO_API_KEY is not set in the environment and the chat-exposed key should be rotated before use."
+    },
+    {
+      "id": "F12",
+      "behavior": "Run versioned golden datasets and generate evaluation results through deterministic or external judge providers.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after F11 live smoke is complete."
+    },
+    {
+      "id": "F13",
+      "behavior": "Compare golden dataset baseline and candidate runs and persist regression reports.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after F12 dataset execution."
+    },
+    {
+      "id": "F14",
+      "behavior": "Provide a Python ingestion SDK for creating runs and writing trace, RAG, and evaluation evidence.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after evaluation runner foundations."
+    },
+    {
+      "id": "F15",
+      "behavior": "Capture LangGraph execution events with lightweight instrumentation helpers.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after SDK boundary is stable."
+    },
+    {
+      "id": "F16",
+      "behavior": "Add a minimal trace viewer for run list, run detail, timeline, RAG evidence, evaluations, and errors.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after ingestion ergonomics are stable."
+    },
+    {
+      "id": "F17",
+      "behavior": "Execute retention cleanup for expired trace data with dry-run and execute modes.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after live judge and dataset workflows."
+    },
+    {
+      "id": "F18",
+      "behavior": "Harden production readiness with key hashing and rotation, audit logs, rate limits, and a PostgreSQL storage adapter.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned for multi-user or hosted deployment readiness."
     }
   ]
 }

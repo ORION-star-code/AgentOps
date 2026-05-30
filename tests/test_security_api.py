@@ -166,3 +166,24 @@ def test_evaluate_scope_is_required_for_regression_report_read(tmp_path) -> None
 
     assert response.status_code == 403
     assert response.json()["detail"] == "API key does not have the required scope"
+
+
+def test_evaluate_scope_is_required_for_mimo_judge(tmp_path) -> None:
+    client = _client_with_key(
+        tmp_path / "agentops.db",
+        key="ingest-only-key",
+        project_id="demo-project",
+        scopes=[ApiScope.INGEST],
+    )
+    run = client.post("/v1/runs", json={"project_id": "demo-project"}).json()
+
+    response = client.post(
+        f"/v1/runs/{run['id']}/evaluations/judge",
+        json={
+            "answer": "The policy applies to enterprise users.",
+            "question": "Who does the policy apply to?",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "API key does not have the required scope"

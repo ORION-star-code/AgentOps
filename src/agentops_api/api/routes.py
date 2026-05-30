@@ -5,7 +5,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from agentops_api.evaluation import (
+    EvaluationJudgeCreate,
     EvaluationResultCreate,
+    MimoJudgeAPIError,
+    MimoJudgeNotConfiguredError,
+    MimoJudgeProvider,
+    MimoJudgeResponseError,
+    MimoJudgeTimeoutError,
     RegressionComparisonCreate,
     RegressionReport,
     build_evaluation_result,
@@ -20,6 +26,7 @@ from agentops_api.observability import (
     RunEventType,
     RunNotFoundError,
     RunDetail,
+    RunStatus,
     TraceRepository,
     build_run_detail,
 )
@@ -45,6 +52,10 @@ def get_trace_repository(request: Request) -> TraceRepository:
 
 def get_api_key_store(request: Request) -> ApiKeyStore:
     return request.app.state.api_key_store
+
+
+def get_mimo_judge_provider(request: Request) -> MimoJudgeProvider:
+    return request.app.state.mimo_judge_provider
 
 
 def require_scope(required_scope: ApiScope):
@@ -220,6 +231,55 @@ def append_evaluation_result(
         ) from exc
 
 
+@router.post(
+    "/v1/runs/{run_id}/evaluations/judge",
+    response_model=RunEvent,
+    status_code=status.HTTP_201_CREATED,
+)
+def append_judge_evaluation_result(
+    run_id: str,
+    evaluation: EvaluationJudgeCreate,
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    judge_provider: Annotated[MimoJudgeProvider, Depends(get_mimo_judge_provider)],
+    principal: RequireEvaluate,
+) -> RunEvent:
+    run = _get_authorized_run(repository, run_id, principal)
+    _ensure_run_accepts_write(run)
+    try:
+        judged_evaluation = judge_provider.evaluate(evaluation)
+    except MimoJudgeNotConfiguredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Mimo judge API key is not configured",
+        ) from exc
+    except MimoJudgeTimeoutError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Mimo judge request timed out",
+        ) from exc
+    except (MimoJudgeAPIError, MimoJudgeResponseError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Mimo judge request failed",
+        ) from exc
+
+    result = build_evaluation_result(judged_evaluation)
+    payload = RunEventCreate(
+        type=RunEventType.EVALUATION,
+        name="mimo_judge_evaluation",
+        payload=result.model_dump(mode="json"),
+    )
+    try:
+        return repository.append_event(run_id, payload)
+    except RunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found") from exc
+    except RunAlreadyEndedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
+        ) from exc
+
+
 @router.post("/v1/runs/{run_id}/complete", response_model=AgentRun)
 def complete_run(
     run_id: str,
@@ -314,6 +374,14 @@ def _ensure_project_access(principal: AuthenticatedPrincipal, project_id: str) -
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="API key cannot access this project",
+        )
+
+
+def _ensure_run_accepts_write(run: AgentRun) -> None:
+    if run.status != RunStatus.RUNNING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Run has already ended",
         )
 
 

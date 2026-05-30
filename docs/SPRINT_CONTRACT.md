@@ -3,7 +3,8 @@
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
 - Current completed feature: F10 evaluation/regression reproducibility.
-- Next feature: to be selected after reviewing SDK, UI, or database migration priorities.
+- Current blocked feature: F11 Mimo LLM judge runner pending live smoke with a rotated `AGENTOPS_MIMO_API_KEY`.
+- Next feature after F11: F12 Golden Dataset Runner.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -13,6 +14,7 @@
 - Ingestion correctness features include tests for typed endpoint restrictions, lifecycle transitions, terminal write rejection, and concurrent sequence assignment.
 - Query scalability features include tests for default limits, cursor progression, event type filtering, and invalid limit rejection.
 - Reproducibility features include tests for versioned evaluator/rubric metadata, persisted reports, report lookup, negative access paths, and deterministic golden dataset contracts.
+- External judge features include mock tests in the default check path and a separate live smoke script that never stores or prints provider API keys.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions

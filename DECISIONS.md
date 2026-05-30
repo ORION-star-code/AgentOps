@@ -89,3 +89,9 @@
 - Reason: "Did this change get worse?" must be auditable after the API call returns, and historical evaluations need to show which evaluator/rubric/judge contract produced them.
 - Rejected alternatives: Keep regression reports as transient responses only, infer evaluator versions from free-form metadata, or connect a real LLM judge before the deterministic contract is stable.
 - Constraints: Regression report reads are project-scoped through the stored `project_id`; the golden dataset format is schema-only for now; real judge execution and dataset runners remain future work.
+
+## 2026-05-30: Add Mimo as the first real LLM judge provider
+- Decision: Implement Xiaomi Mimo through its OpenAI-compatible `/chat/completions` API as the first external LLM-as-judge provider.
+- Reason: AgentOps already has deterministic evaluation and reproducible report contracts; a real judge runner is the smallest next step toward automated answer quality evaluation.
+- Rejected alternatives: Use the Anthropic-compatible Mimo endpoint first, build a sample Agent runtime before evaluator support, or store provider keys in repository files.
+- Constraints: Mimo credentials are loaded only from environment variables; default tests use mocks and do not call the live API; live smoke is separated into `scripts/smoke-mimo.ps1` because it requires network access and a paid/secret key.
