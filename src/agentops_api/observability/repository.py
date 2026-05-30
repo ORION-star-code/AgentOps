@@ -140,6 +140,32 @@ class TraceRepository:
             return None
         return _row_to_run(row)
 
+    def list_runs(
+        self,
+        project_id: str,
+        *,
+        limit: int,
+        status: RunStatus | None = None,
+    ) -> list[AgentRun]:
+        conditions = ["project_id = ?"]
+        parameters: list[Any] = [project_id]
+        if status is not None:
+            conditions.append("status = ?")
+            parameters.append(status.value)
+
+        query = f"""
+            SELECT *
+            FROM runs
+            WHERE {" AND ".join(conditions)}
+            ORDER BY started_at DESC, id DESC
+            LIMIT ?
+        """
+        parameters.append(limit)
+
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [_row_to_run(row) for row in rows]
+
     def append_event(self, run_id: str, payload: RunEventCreate) -> RunEvent:
         redacted_payload = redact_json_object(payload.payload, path_prefix="payload").value
         connection = self._connect()

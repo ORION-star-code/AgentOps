@@ -119,3 +119,9 @@
 - Reason: AgentOps needs a stable event contract for node/tool/model/error capture before committing to one LangGraph callback API version.
 - Rejected alternatives: Add a hard LangGraph dependency immediately, instrument by bypassing the HTTP SDK, or create bespoke event tables for LangGraph nodes.
 - Constraints: Node execution is stored as `custom` events named `langgraph_node`; model/tool/error capture uses existing typed timeline events; exceptions inside node contexts record error evidence, fail the run context, and re-raise.
+
+## 2026-05-30: Serve the first trace viewer as a no-build debug UI
+- Decision: Implement F16 as a FastAPI-served HTML/CSS/JavaScript shell at `GET /viewer`, backed by a project-scoped `GET /v1/runs` API and existing run detail endpoint.
+- Reason: The project needs an immediately usable debugging workspace without introducing a frontend build pipeline before UI query patterns stabilize.
+- Rejected alternatives: Add React/Vite immediately, expose unauthenticated server-rendered trace data, or let the viewer read SQLite directly.
+- Constraints: The viewer does not bypass `/v1` authentication, stores the API key only in browser `sessionStorage`, renders trace payloads as text, and remains focused on run list, timeline, RAG evidence, evaluations, and errors.

@@ -2,8 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F15 LangGraph Instrumentation.
-- Next feature: F16 Trace Viewer UI.
+- Current completed feature: F16 Trace Viewer UI.
+- Next feature: F17 Retention Cleanup.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -18,9 +18,10 @@
 - Golden dataset regression features include completed-run checks, project ownership checks, case alignment checks, persisted report lookup, and deterministic improved/unchanged/regressed coverage.
 - SDK features include API key/header checks, API error mapping, injected-client tests, and an integration test that writes a complete run lifecycle through public APIs.
 - Instrumentation features include fake graph tests for node contexts, wrapper execution, model/tool usage, error capture, run completion/failure, and no real LangGraph dependency.
+- UI features include API contract tests, authenticated data-access checks, project isolation checks, and a basic served-page test that proves credentials are not embedded in the shell.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions
-- UI and SDK work until security and ingestion foundations are stable.
+- Frontend build pipeline, routing framework, or chart library work until the no-build viewer proves real workflow needs.
 - Full enterprise auth, OAuth, or organization management.
 - Large refactors unrelated to the active feature.

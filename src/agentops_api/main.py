@@ -11,6 +11,7 @@ from agentops_api.evaluation import MimoJudgeProvider, load_mimo_judge_config
 from agentops_api.observability import DEFAULT_DB_PATH, TraceRepository
 from agentops_api.privacy import load_retention_config
 from agentops_api.security import ApiKeyCredential, ApiKeyStore, load_api_key_credentials
+from agentops_api.viewer import router as viewer_router
 
 
 def create_app(
@@ -39,6 +40,7 @@ def create_app(
         load_mimo_judge_config(),
     )
     app.include_router(router)
+    app.include_router(viewer_router)
 
     return app
 

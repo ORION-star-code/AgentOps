@@ -45,6 +45,8 @@ router = APIRouter()
 API_KEY_HEADER = "X-AgentOps-API-Key"
 DEFAULT_EVENT_LIMIT = 100
 MAX_EVENT_LIMIT = 500
+DEFAULT_RUN_LIMIT = 50
+MAX_RUN_LIMIT = 100
 GENERIC_EVENT_TYPES = {
     RunEventType.MESSAGE,
     RunEventType.MODEL_CALL,
@@ -114,6 +116,16 @@ def create_run(
 ) -> AgentRun:
     _ensure_project_access(principal, payload.project_id)
     return repository.create_run(payload)
+
+
+@router.get("/v1/runs", response_model=list[AgentRun])
+def list_runs(
+    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    principal: RequireRead,
+    limit: Annotated[int, Query(ge=1, le=MAX_RUN_LIMIT)] = DEFAULT_RUN_LIMIT,
+    run_status: Annotated[RunStatus | None, Query(alias="status")] = None,
+) -> list[AgentRun]:
+    return repository.list_runs(principal.project_id, limit=limit, status=run_status)
 
 
 @router.get("/v1/runs/{run_id}", response_model=AgentRun)

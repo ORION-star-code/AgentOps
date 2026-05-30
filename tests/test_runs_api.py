@@ -1,3 +1,6 @@
+from agentops_api.security import ApiScope
+
+
 def test_run_ingestion_and_timeline_query(make_client) -> None:
     client = make_client()
 
@@ -48,6 +51,58 @@ def test_run_ingestion_and_timeline_query(make_client) -> None:
     events_response = client.get(f"/v1/runs/{run['id']}/events")
     assert events_response.status_code == 200
     assert [event["sequence"] for event in events_response.json()] == [1, 2]
+
+
+def test_list_runs_returns_project_scoped_recent_runs(make_client) -> None:
+    first_client = make_client()
+    second_client = make_client(project_id="other-project")
+    first_run = first_client.post(
+        "/v1/runs",
+        json={"project_id": "demo-project", "name": "project run"},
+    ).json()
+    second_run = second_client.post(
+        "/v1/runs",
+        json={"project_id": "other-project", "name": "other run"},
+    ).json()
+
+    response = first_client.get("/v1/runs")
+
+    assert response.status_code == 200
+    run_ids = [run["id"] for run in response.json()]
+    assert first_run["id"] in run_ids
+    assert second_run["id"] not in run_ids
+
+
+def test_list_runs_supports_limit_and_status_filter(make_client) -> None:
+    client = make_client()
+    running_run = client.post(
+        "/v1/runs",
+        json={"project_id": "demo-project", "name": "running"},
+    ).json()
+    completed_run = client.post(
+        "/v1/runs",
+        json={"project_id": "demo-project", "name": "completed"},
+    ).json()
+    client.post(f"/v1/runs/{completed_run['id']}/complete")
+
+    filtered_response = client.get("/v1/runs?status=succeeded&limit=1")
+    invalid_limit_response = client.get("/v1/runs?limit=101")
+
+    assert filtered_response.status_code == 200
+    assert [run["id"] for run in filtered_response.json()] == [completed_run["id"]]
+    assert running_run["id"] not in [run["id"] for run in filtered_response.json()]
+    assert invalid_limit_response.status_code == 422
+
+
+def test_list_runs_requires_read_scope(make_client) -> None:
+    unauthenticated_client = make_client(include_auth_header=False)
+    insufficient_client = make_client(scopes=[ApiScope.INGEST])
+
+    unauthenticated_response = unauthenticated_client.get("/v1/runs")
+    insufficient_scope_response = insufficient_client.get("/v1/runs")
+
+    assert unauthenticated_response.status_code == 401
+    assert insufficient_scope_response.status_code == 403
 
 
 def test_timeline_query_supports_limit_cursor_and_type_filter(make_client) -> None:

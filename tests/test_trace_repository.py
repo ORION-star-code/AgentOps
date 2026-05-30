@@ -34,6 +34,25 @@ def test_sqlite_repository_creates_and_fetches_run(tmp_path) -> None:
     assert fetched.metadata == {"agent_framework": "langgraph"}
 
 
+def test_repository_lists_project_runs_with_status_filter(tmp_path) -> None:
+    repository = TraceRepository(tmp_path / "agentops.db")
+    first = repository.create_run(AgentRunCreate(project_id="demo-project", name="first"))
+    second = repository.create_run(AgentRunCreate(project_id="demo-project", name="second"))
+    other_project = repository.create_run(AgentRunCreate(project_id="other-project"))
+    repository.complete_run(first.id)
+
+    project_runs = repository.list_runs("demo-project", limit=10)
+    completed_runs = repository.list_runs(
+        "demo-project",
+        limit=10,
+        status=RunStatus.SUCCEEDED,
+    )
+
+    assert {run.id for run in project_runs} == {first.id, second.id}
+    assert other_project.id not in {run.id for run in project_runs}
+    assert [run.id for run in completed_runs] == [first.id]
+
+
 def test_appending_events_generates_stable_sequences(tmp_path) -> None:
     repository = TraceRepository(tmp_path / "agentops.db")
     run = repository.create_run(AgentRunCreate(project_id="demo-project"))

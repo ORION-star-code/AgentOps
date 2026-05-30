@@ -16,6 +16,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
 - `agentops_api.sdk`: Python client for developer ingestion and evaluation workflows.
 - `agentops_api.instrumentation`: Framework-specific helpers built on top of the SDK.
+- `agentops_api.viewer`: Minimal browser UI served by FastAPI and backed by authenticated `/v1` APIs.
 
 ## F06 Security Boundary
 
@@ -437,6 +438,35 @@ existing /v1 trace APIs
 - `attach_run(run_id)` records into an existing run and leaves lifecycle ownership to the caller.
 
 The helper is intentionally synchronous and dependency-light. A richer official LangGraph callback adapter can be added later without changing the stored event contract.
+
+## F16 Trace Viewer UI
+
+The first UI is a no-build browser shell served at `GET /viewer`. It is intentionally a debugging workspace, not a marketing page.
+
+```text
+Browser /viewer
+        |
+        | X-AgentOps-API-Key from session storage
+        v
+GET /v1/runs
+        |
+        v
+GET /v1/runs/{run_id}/detail
+```
+
+### Viewer Boundary
+
+- The viewer does not read SQLite directly and does not bypass API authentication.
+- The API key is entered by the developer and stored only in `sessionStorage`.
+- Run list data comes from `GET /v1/runs`, which is scoped to the authenticated project and requires `read`.
+- Run detail data comes from `GET /v1/runs/{run_id}/detail`, preserving existing project ownership checks.
+- The browser renders JSON payloads with text nodes so trace payloads are inspected as data, not executed as markup.
+- The first version focuses on run list, recent timeline page, RAG evidence, evaluations, and errors.
+
+### Current Viewer API
+
+- `GET /viewer`
+- `GET /v1/runs?limit=50&status=succeeded`
 
 ## F05 Run Detail Contract
 

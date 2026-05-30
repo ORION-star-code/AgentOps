@@ -27,7 +27,9 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 ## Current API
 
 - `GET /health`
+- `GET /viewer`
 - `POST /v1/runs`
+- `GET /v1/runs?limit=50&status=succeeded`
 - `GET /v1/runs/{run_id}`
 - `POST /v1/runs/{run_id}/complete`
 - `POST /v1/runs/{run_id}/fail`
@@ -44,6 +46,8 @@ Trace metadata and event payloads are redacted before persistence when sensitive
 - `GET /v1/runs/{run_id}/detail`
 
 Timeline queries default to 100 events and accept up to 500 events per page. Use `after_sequence` as a cursor and `type` to filter by event type. Run detail returns full summary counts plus the latest 100 timeline events.
+
+Open `GET /viewer` in a browser to use the minimal trace viewer. Enter a project-scoped API key in the page; the viewer stores it only in browser session storage and calls the authenticated `/v1` APIs for the run list, run detail, timeline, RAG evidence, evaluations, and errors.
 
 Evaluation payloads include evaluator/rubric version metadata, judge model identity, and threshold profile. Regression comparisons are stored as project-scoped reports with ID, creation time, metric deltas, verdicts, and reproducibility metadata so results can be audited after the original request.
 

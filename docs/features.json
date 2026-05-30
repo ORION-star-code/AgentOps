@@ -125,8 +125,8 @@
       "id": "F16",
       "behavior": "Add a minimal trace viewer for run list, run detail, timeline, RAG evidence, evaluations, and errors.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after ingestion ergonomics are stable."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented GET /v1/runs for project-scoped run listing plus a no-build FastAPI-served Trace Viewer at GET /viewer. The viewer stores API keys only in browser sessionStorage, calls authenticated /v1 APIs, and renders run list, detail summary, recent timeline, RAG evidence, evaluations, and errors. Validation passed with Ruff, 135 pytest tests, and harness validation."
     },
     {
       "id": "F17",

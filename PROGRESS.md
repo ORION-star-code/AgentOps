@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F15 LangGraph Instrumentation complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 130 pytest tests, and harness validation
+- Latest checkpoint: F16 Trace Viewer UI complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -77,6 +77,11 @@
 - [x] `LangGraphRun` records message, node, model call, tool call, custom, and error events through `AgentOpsClient`
 - [x] Node contexts capture status and latency while preserving original exceptions
 - [x] Fake graph tests cover successful node/model/tool capture, wrapped node execution, node error capture, failed run lifecycle, and attached existing runs
+- [x] F16 project-scoped run list API added at `GET /v1/runs`
+- [x] Trace Viewer UI added at `GET /viewer`
+- [x] Viewer stores API keys only in browser session storage and calls authenticated `/v1` APIs
+- [x] Viewer shows run list, selected run summary, recent timeline, RAG evidence, evaluations, and errors
+- [x] F16 tests cover run list project isolation, status/limit filtering, read-scope enforcement, and credential-free viewer shell rendering
 
 ## In Progress
 - None
@@ -85,6 +90,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F16 Trace Viewer UI.
-2. Build a minimal developer UI for run list, run detail, timeline, RAG evidence, evaluations, and errors.
-3. Keep UI scoped to debugging workflows, not a marketing site.
+1. Start F17 Retention Cleanup.
+2. Implement `AGENTOPS_RETENTION_DAYS` cleanup with dry-run and execute modes.
+3. Protect active runs and verify expired trace deletion with temporary SQLite tests.
