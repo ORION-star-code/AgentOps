@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, and Python ingestion SDK. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, Python ingestion SDK, and lightweight LangGraph instrumentation helpers. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
 All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
 
@@ -76,6 +76,34 @@ with AgentOpsClient(
 ```
 
 The SDK sends `X-AgentOps-API-Key` automatically, defaults requests to the configured `project_id`, raises `AgentOpsAPIError` for non-2xx responses, and supports injected HTTP clients for tests or embedded tooling.
+
+## LangGraph Instrumentation
+
+```python
+from agentops_api import AgentOpsClient, LangGraphInstrumentation
+
+client = AgentOpsClient(api_key="local-dev-key", project_id="demo-project")
+instrumentation = LangGraphInstrumentation(client)
+
+with instrumentation.trace_run(name="LangGraph debug run") as run:
+    with run.node("retrieve_documents"):
+        run.record_tool_call(
+            tool_name="vector_search",
+            arguments={"query": "policy applies to"},
+            result={"chunk_ids": ["chunk-001"]},
+            latency_ms=128,
+            token_count=42,
+        )
+    with run.node("answer_question"):
+        run.record_model_call(
+            model_name="mimo-v2.5-pro",
+            response="The policy applies to enterprise users.",
+            latency_ms=240,
+            token_count=120,
+        )
+```
+
+The instrumentation helpers do not require LangGraph as a dependency. They provide context managers and wrappers that LangGraph node/callback code can call to emit node, tool, model, and error events through the SDK.
 
 ## Project Documents
 

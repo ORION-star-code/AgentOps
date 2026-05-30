@@ -113,3 +113,9 @@
 - Reason: Agent developers need a small integration surface now, while the API remains the security, validation, redaction, and persistence boundary.
 - Rejected alternatives: Build an in-process repository SDK that bypasses HTTP security, add async/batching before ingestion volume is measured, or create a separate package namespace before the project packaging boundary is stable.
 - Constraints: The SDK sends `X-AgentOps-API-Key` per request, defaults project-scoped operations to the configured `project_id`, raises `AgentOpsAPIError` on non-2xx responses, and keeps tests offline through `httpx.MockTransport` plus FastAPI TestClient injection.
+
+## 2026-05-30: Keep LangGraph instrumentation dependency-light
+- Decision: Implement F15 as context managers and wrappers over `AgentOpsClient` instead of depending on LangGraph directly.
+- Reason: AgentOps needs a stable event contract for node/tool/model/error capture before committing to one LangGraph callback API version.
+- Rejected alternatives: Add a hard LangGraph dependency immediately, instrument by bypassing the HTTP SDK, or create bespoke event tables for LangGraph nodes.
+- Constraints: Node execution is stored as `custom` events named `langgraph_node`; model/tool/error capture uses existing typed timeline events; exceptions inside node contexts record error evidence, fail the run context, and re-raise.

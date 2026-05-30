@@ -15,6 +15,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 - `agentops_api.rag`: Retrieval queries, chunks, citations, hit/miss signals, and grounding evidence.
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
 - `agentops_api.sdk`: Python client for developer ingestion and evaluation workflows.
+- `agentops_api.instrumentation`: Framework-specific helpers built on top of the SDK.
 
 ## F06 Security Boundary
 
@@ -402,6 +403,40 @@ The SDK covers:
 - Regression report lookup.
 
 The SDK stays synchronous in F14 because the local FastAPI/SQLite MVP and most LangGraph callback integrations can use blocking ingestion initially. Async, batching, retries, and background queues are deferred until ingestion volume justifies them.
+
+## F15 LangGraph Instrumentation
+
+F15 adds lightweight LangGraph-oriented helpers over `AgentOpsClient`. It does not depend on LangGraph directly; instead, it exposes context managers and wrappers that can be called from LangGraph nodes, callbacks, or fake graph tests.
+
+```text
+LangGraph node/callback
+        |
+        v
+LangGraphInstrumentation / LangGraphRun
+        |
+        v
+AgentOpsClient
+        |
+        v
+existing /v1 trace APIs
+```
+
+### Captured Events
+
+- `message`: `record_message(role, content)`.
+- `tool_call`: `record_tool_call(tool_name, arguments, result, latency_ms, token_count)`.
+- `model_call`: `record_model_call(model_name, prompt, response, latency_ms, token_count)`.
+- `custom`: `run.node("node_name")` emits a `langgraph_node` event with status and latency.
+- `error`: exceptions inside a node context emit `langgraph_error` and fail the run context.
+
+### Lifecycle Rules
+
+- `trace_run(...)` creates a normal AgentOps run with `agent_framework = "langgraph"`.
+- Successful context exit completes the run.
+- Exception exit records an error if needed, marks the run failed, and re-raises the original exception.
+- `attach_run(run_id)` records into an existing run and leaves lifecycle ownership to the caller.
+
+The helper is intentionally synchronous and dependency-light. A richer official LangGraph callback adapter can be added later without changing the stored event contract.
 
 ## F05 Run Detail Contract
 

@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F14 Python Ingestion SDK complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 126 pytest tests, and harness validation
+- Latest checkpoint: F15 LangGraph Instrumentation complete
+- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 130 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -72,6 +72,11 @@
 - [x] SDK supports run lifecycle, timeline events, RAG evidence, manual evaluation, Mimo judge evaluation, golden dataset execution, dataset regression comparison, and regression report lookup
 - [x] SDK errors map non-2xx responses to `AgentOpsAPIError` without exposing API keys
 - [x] SDK tests cover mocked HTTP requests, error behavior, complete run lifecycle ingestion, and dataset regression integration
+- [x] F15 lightweight LangGraph instrumentation helpers implemented
+- [x] `LangGraphInstrumentation.trace_run` creates AgentOps runs and completes or fails them based on execution outcome
+- [x] `LangGraphRun` records message, node, model call, tool call, custom, and error events through `AgentOpsClient`
+- [x] Node contexts capture status and latency while preserving original exceptions
+- [x] Fake graph tests cover successful node/model/tool capture, wrapped node execution, node error capture, failed run lifecycle, and attached existing runs
 
 ## In Progress
 - None
@@ -80,6 +85,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F15 LangGraph Instrumentation.
-2. Build lightweight callback/helper APIs on top of `AgentOpsClient`.
-3. Use fake graph/stub tests before adding an optional real LangGraph dependency.
+1. Start F16 Trace Viewer UI.
+2. Build a minimal developer UI for run list, run detail, timeline, RAG evidence, evaluations, and errors.
+3. Keep UI scoped to debugging workflows, not a marketing site.

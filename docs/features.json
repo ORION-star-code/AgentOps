@@ -118,8 +118,8 @@
       "id": "F15",
       "behavior": "Capture LangGraph execution events with lightweight instrumentation helpers.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after SDK boundary is stable."
+      "state": "passing",
+      "evidence": "2026-05-30: Implemented dependency-light LangGraphInstrumentation and LangGraphRun helpers over AgentOpsClient. Helpers capture node lifecycle as custom events, model calls, tool calls, messages, errors, token usage, latency, run completion, and run failure. Fake graph tests cover successful node/model/tool capture, wrapper execution, node exceptions, attached existing runs, and no real LangGraph dependency. Validation passed with Ruff, 130 pytest tests, and harness validation."
     },
     {
       "id": "F16",

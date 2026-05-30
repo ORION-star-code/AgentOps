@@ -2,8 +2,8 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F14 Python Ingestion SDK.
-- Next feature: F15 LangGraph Instrumentation.
+- Current completed feature: F15 LangGraph Instrumentation.
+- Next feature: F16 Trace Viewer UI.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -17,6 +17,7 @@
 - Golden dataset features include deterministic no-network tests, provider-injection tests for external judge modes, per-case failure coverage, and run detail evidence checks.
 - Golden dataset regression features include completed-run checks, project ownership checks, case alignment checks, persisted report lookup, and deterministic improved/unchanged/regressed coverage.
 - SDK features include API key/header checks, API error mapping, injected-client tests, and an integration test that writes a complete run lifecycle through public APIs.
+- Instrumentation features include fake graph tests for node contexts, wrapper execution, model/tool usage, error capture, run completion/failure, and no real LangGraph dependency.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions
