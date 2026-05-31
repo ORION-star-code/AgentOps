@@ -146,8 +146,8 @@
       "id": "F16.3",
       "behavior": "Structure the Evidence Inspector into Summary, Payload, Evidence, Metrics, and Raw JSON sections with RAG and evaluation-specific presentations.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F16.2."
+      "state": "passing",
+      "evidence": "2026-05-31: Implemented a structured Evidence Inspector with Summary, Payload, Evidence, Metrics, and collapsed Raw JSON sections plus Copy JSON. RAG events highlight query, hit status, chunks, citations, source URI, score, and excerpt. Evaluation events highlight verdict, evaluator/rubric metadata, metric score, threshold, pass/fail bar, and rationale. In-app browser validation confirmed RAG evidence items, evaluation metric rows, metric bars, Copy JSON, and collapsed Raw JSON. Validation passed with Ruff, 135 pytest tests, and harness validation."
     },
     {
       "id": "F16.4",

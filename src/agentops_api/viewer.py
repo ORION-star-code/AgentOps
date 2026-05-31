@@ -746,6 +746,12 @@ TRACE_VIEWER_HTML = """
       background: var(--surface);
     }
 
+    .panel-section.prominent {
+      background:
+        linear-gradient(135deg, rgba(45, 212, 191, 0.08), rgba(167, 139, 250, 0.03)),
+        var(--surface);
+    }
+
     .panel-section h3 {
       margin: 0;
       font-size: 13px;
@@ -756,6 +762,105 @@ TRACE_VIEWER_HTML = """
       margin: 0;
       color: var(--muted);
       font-size: 12px;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kv {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16, 26, 34, 0.72);
+    }
+
+    .kv span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .kv strong {
+      overflow: hidden;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .data-chip {
+      display: inline-flex;
+      min-height: 24px;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(16, 26, 34, 0.76);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .evidence-item,
+    .metric-row {
+      display: grid;
+      gap: 7px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(7, 12, 18, 0.58);
+    }
+
+    .evidence-item strong,
+    .metric-row strong {
+      font-size: 12px;
+    }
+
+    .metric-bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .metric-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--evaluation);
+    }
+
+    .metric-fill.fail {
+      background: var(--red);
+    }
+
+    .raw-json {
+      display: grid;
+      gap: 8px;
+    }
+
+    .raw-json summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 750;
     }
 
     pre {
@@ -1240,24 +1345,171 @@ TRACE_VIEWER_HTML = """
       }
       const selected = state.detail.timeline.find((event) => event.id === state.selectedEventId);
       if (selected) {
-        nodes.inspector.append(inspectorSection(
-          "Selected event",
-          `${selected.type} / ${selected.name || "unnamed"} / #${selected.sequence}`,
-          selected.payload,
-        ));
+        nodes.inspector.append(inspectorSummary(selected));
+        nodes.inspector.append(payloadSummary(selected.payload));
+        if (selected.type === "rag_retrieval") {
+          nodes.inspector.append(ragEvidenceSection(selected.payload));
+        }
+        if (selected.type === "evaluation") {
+          nodes.inspector.append(evaluationMetricsSection(selected.payload));
+        }
+        if (selected.type === "error") {
+          nodes.inspector.append(errorEvidenceSection(selected.payload));
+        }
+        nodes.inspector.append(rawJsonSection("Raw JSON", selected.payload));
+        return;
       }
-      addEvidenceGroup("RAG evidence", state.detail.rag_evidence);
-      addEvidenceGroup("Evaluations", state.detail.evaluations);
-      addEvidenceGroup("Errors", state.detail.errors);
-      if (!selected && nodes.inspector.children.length === 0) {
-        nodes.inspector.append(emptyState("No evidence in this page", "Recent timeline data has no RAG, evaluation, or error events."));
-      }
+      nodes.inspector.append(emptyState("No event selected", "Select a Trace Spine row to inspect summary, evidence, metrics, and raw JSON."));
     }
 
-    function addEvidenceGroup(title, events) {
-      for (const event of events) {
-        nodes.inspector.append(inspectorSection(title, event.name || event.type, event.payload));
+    function inspectorSummary(event) {
+      const signal = extractSignal(event);
+      const fields = [
+        ["Type", event.type],
+        ["Name", event.name || "unnamed"],
+        ["Sequence", `#${event.sequence}`],
+        ["Timestamp", formatTime(event.timestamp)],
+        ["Latency", extractLatency(event.payload) ? `${extractLatency(event.payload)}ms` : "n/a"],
+        ["Tokens", extractTokens(event.payload) ? `${extractTokens(event.payload)} tok` : "n/a"],
+        ["Signal", signal.text || "none"],
+      ];
+      return panel("Summary", `${event.type} / ${event.name || "unnamed"} / #${event.sequence}`, [
+        kvGrid(fields),
+      ], "prominent");
+    }
+
+    function payloadSummary(payload) {
+      const chips = Object.entries(payload || {})
+        .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+        .map(([key, value]) => dataChip(`${key}: ${formatValue(value)}`));
+      return panel("Payload", "Scalar fields extracted from the selected event payload.", [
+        div("chip-list", chips.length > 0 ? chips : [dataChip("no scalar fields")]),
+      ]);
+    }
+
+    function ragEvidenceSection(payload) {
+      const chunks = Array.isArray(payload.chunks) ? payload.chunks : [];
+      const citations = Array.isArray(payload.citations) ? payload.citations : [];
+      const children = [
+        kvGrid([
+          ["Query", payload.query || "n/a"],
+          ["Hit status", payload.hit_status || "n/a"],
+          ["Citation coverage", payload.citation_coverage ?? "n/a"],
+          ["Chunks", chunks.length],
+        ]),
+      ];
+      for (const chunk of chunks) {
+        children.push(evidenceItem(
+          chunk.source_uri || chunk.chunk_id || "retrieved chunk",
+          [
+            dataChip(`score: ${formatValue(chunk.score ?? "n/a")}`),
+            dataChip(`chunk: ${formatValue(chunk.chunk_id ?? "n/a")}`),
+          ],
+          chunk.content_preview || chunk.excerpt || chunk.text || "",
+        ));
       }
+      for (const citation of citations) {
+        children.push(evidenceItem(
+          citation.claim || `citation: ${citation.chunk_id || "unknown chunk"}`,
+          [dataChip(`chunk: ${formatValue(citation.chunk_id ?? "n/a")}`)],
+          citation.quote || "",
+        ));
+      }
+      return panel("Evidence", "RAG chunks, citations, source URI, score, and excerpt.", children);
+    }
+
+    function evaluationMetricsSection(payload) {
+      const metrics = Array.isArray(payload.metrics) ? payload.metrics : [];
+      const children = [
+        kvGrid([
+          ["Verdict", payload.verdict || "n/a"],
+          ["Evaluator", payload.evaluator_id || payload.evaluator_name || "n/a"],
+          ["Rubric", [payload.rubric_id, payload.rubric_version].filter(Boolean).join("@") || "n/a"],
+          ["Judge model", payload.judge_model || "n/a"],
+        ]),
+      ];
+      for (const item of metrics) {
+        children.push(metricRow(item));
+      }
+      if (metrics.length === 0) {
+        children.push(paragraph("No metric rows are present in this evaluation payload."));
+      }
+      return panel("Metrics", "Evaluation verdict, score, threshold, and rationale.", children);
+    }
+
+    function errorEvidenceSection(payload) {
+      return panel("Evidence", "Error payload and recovery context.", [
+        kvGrid([
+          ["Message", payload.message || payload.error || payload.error_message || "n/a"],
+          ["Code", payload.code || payload.error_code || "n/a"],
+          ["Recoverable", payload.recoverable ?? "n/a"],
+          ["Tool", payload.tool_name || "n/a"],
+        ]),
+      ]);
+    }
+
+    function rawJsonSection(title, payload) {
+      const section = document.createElement("section");
+      section.className = "panel-section";
+      const details = document.createElement("details");
+      details.className = "raw-json";
+      const summary = document.createElement("summary");
+      const copy = smallButton("Copy JSON", () => copyJson(payload));
+      copy.addEventListener("click", (event) => event.stopPropagation());
+      summary.append(strong(title), copy);
+      details.append(summary, payloadBlock(payload));
+      section.append(details);
+      return section;
+    }
+
+    function panel(title, subtitle, children, variant = "") {
+      const section = document.createElement("section");
+      section.className = `panel-section ${variant}`.trim();
+      section.append(heading3(title), paragraph(subtitle), ...children);
+      return section;
+    }
+
+    function kvGrid(items) {
+      return div("kv-grid", items.map(([label, value]) => kv(label, value)));
+    }
+
+    function kv(label, value) {
+      const item = document.createElement("div");
+      item.className = "kv";
+      item.append(span(label), strong(formatValue(value)));
+      return item;
+    }
+
+    function dataChip(text) {
+      return span(text, "data-chip");
+    }
+
+    function evidenceItem(title, chips, excerpt) {
+      const item = document.createElement("div");
+      item.className = "evidence-item";
+      item.append(strong(title), div("chip-list", chips));
+      if (excerpt) {
+        item.append(paragraph(excerpt));
+      }
+      return item;
+    }
+
+    function metricRow(item) {
+      const score = Number(item.score);
+      const percent = Number.isFinite(score) ? Math.max(0, Math.min(100, score * 100)) : 0;
+      const row = document.createElement("div");
+      row.className = "metric-row";
+      const passed = item.passed === false ? "fail" : "pass";
+      row.append(
+        div("split-line", [
+          strong(item.name || "metric"),
+          span(`score ${formatValue(item.score)} / threshold ${formatValue(item.threshold)}`, "meta"),
+        ]),
+        div("metric-bar", [div(`metric-fill ${passed}`, [])]),
+        paragraph(item.rationale || "No rationale recorded."),
+      );
+      row.querySelector(".metric-fill").style.width = `${percent}%`;
+      return row;
     }
 
     function eventBody(event) {
@@ -1398,6 +1650,11 @@ TRACE_VIEWER_HTML = """
       setStatus("Copied run ID.", "ready");
     }
 
+    async function copyJson(value) {
+      await navigator.clipboard.writeText(JSON.stringify(value, null, 2));
+      setStatus("Copied JSON.", "ready");
+    }
+
     function heading(text) {
       const node = document.createElement("h1");
       node.textContent = text;
@@ -1451,6 +1708,16 @@ TRACE_VIEWER_HTML = """
         return value;
       }
       return date.toLocaleString();
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === "") {
+        return "n/a";
+      }
+      if (typeof value === "object") {
+        return JSON.stringify(value);
+      }
+      return String(value);
     }
 
     nodes.connect.addEventListener("click", () => {

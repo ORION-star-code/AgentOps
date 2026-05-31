@@ -16,6 +16,14 @@ def test_trace_viewer_shell_is_served_without_embedding_credentials(make_client)
     assert "event-node" in html
     assert "event-summary" in html
     assert "event-signal" in html
+    assert "kv-grid" in html
+    assert "Payload" in html
+    assert "Metrics" in html
+    assert "Raw JSON" in html
+    assert "Copy JSON" in html
+    assert "ragEvidenceSection" in html
+    assert "evaluationMetricsSection" in html
+    assert "metric-bar" in html
     assert "extractLatency" in html
     assert "extractTokens" in html
     assert "retrieval:" in html

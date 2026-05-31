@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16.2 Trace Spine Timeline complete
+- Latest checkpoint: F16.3 Structured Evidence Inspector complete
 - Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
@@ -88,6 +88,8 @@
 - [x] F16.1 browser validation loaded `/viewer` with `local-dev-key`, confirmed demo run data, desktop three-column layout at 1440px, and mobile single-column layout at 390px
 - [x] F16.2 Trace Spine Timeline added connected event nodes, event summary chips, latency/token extraction, verdict/retrieval/error signals, count badges, and selected-event inspector linkage
 - [x] F16.2 browser validation loaded `/viewer` with `local-dev-key` and confirmed 6 spine nodes, latency/token chips, hit/pass/error signals, filter counts, and inspector selection updates
+- [x] F16.3 Structured Evidence Inspector added Summary, Payload, Evidence, Metrics, and collapsed Raw JSON sections with Copy JSON
+- [x] F16.3 browser validation confirmed RAG source/score/excerpt/citation evidence, evaluation metric rows and bars, and collapsed Raw JSON
 
 ## In Progress
 - None
@@ -96,6 +98,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F16.3 Structured Evidence Inspector.
-2. Structure the right-side inspector into summary, payload, evidence, metrics, and raw JSON sections.
-3. Continue F16.4 Run Navigator Summary API before returning to F17 Retention Cleanup.
+1. Start F16.4 Run Navigator Summary API.
+2. Add optional `GET /v1/runs?include_summary=true` aggregation with project isolation.
+3. Return to F17 Retention Cleanup after F16.4 passes.

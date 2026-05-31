@@ -149,3 +149,9 @@
 - Reason: The current `/v1/runs/{run_id}/detail` contract already contains enough evidence for scan-friendly debugging, so the UI can become more useful without waiting for a new API.
 - Rejected alternatives: Add a new timeline summary endpoint before the visual workflow is proven, or continue rendering plain JSON previews as the primary timeline affordance.
 - Constraints: Signal extraction is intentionally conservative and display-only; typed backend summary APIs remain planned for F16.4.
+
+## 2026-05-31: Make structured inspector views primary for F16.3
+- Decision: Present selected event evidence through Summary, Payload, Evidence, Metrics, and collapsed Raw JSON sections instead of making raw JSON the first surface.
+- Reason: Agent developers need fast answers about retrieval hits, source quality, metric scores, thresholds, and failure context; raw JSON should remain available for auditing but not dominate the inspection flow.
+- Rejected alternatives: Keep appending every RAG/evaluation/error payload below the selected event, or hide raw JSON completely.
+- Constraints: The no-build viewer remains framework-free, Copy JSON exposes only the selected payload, and richer cross-event correlation is left to later viewer work.
