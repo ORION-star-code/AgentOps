@@ -2,9 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F16.1 Observatory Visual System.
+- Current completed feature: F16.2 Trace Spine Timeline.
 - Current active branch sequence: F16 front-end production polish.
-- Next feature: F16.2 Trace Spine Timeline.
+- Next feature: F16.3 Structured Evidence Inspector.
 - F17 Retention Cleanup resumes after the F16 front-end branches complete or the user explicitly reprioritizes it.
 
 ## Verification Standards

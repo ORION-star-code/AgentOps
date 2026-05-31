@@ -521,6 +521,9 @@ TRACE_VIEWER_HTML = """
     }
 
     .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       min-height: 30px;
       padding: 0 9px;
       border-radius: 999px;
@@ -535,6 +538,19 @@ TRACE_VIEWER_HTML = """
       color: #b5fff4;
     }
 
+    .tab-count {
+      display: inline-grid;
+      min-width: 20px;
+      min-height: 18px;
+      place-items: center;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
     .timeline-list {
       min-height: 0;
       overflow: auto;
@@ -543,11 +559,11 @@ TRACE_VIEWER_HTML = """
 
     .event-row {
       display: grid;
-      grid-template-columns: 78px minmax(0, 1fr);
+      grid-template-columns: 74px minmax(0, 1fr);
       width: 100%;
-      min-height: 74px;
-      gap: 12px;
-      padding: 13px 15px;
+      min-height: 88px;
+      gap: 14px;
+      padding: 12px 15px;
       border-width: 0 0 1px;
       border-color: var(--line);
       border-radius: 0;
@@ -564,50 +580,145 @@ TRACE_VIEWER_HTML = """
       box-shadow: inset 3px 0 0 var(--accent);
     }
 
-    .sequence {
+    .spine-cell {
+      position: relative;
       display: grid;
-      gap: 3px;
+      justify-items: center;
       align-content: start;
+      gap: 5px;
       color: var(--muted);
       font-size: 12px;
     }
 
-    .event-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
+    .spine-cell::before,
+    .spine-cell::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      width: 1px;
       background: var(--line-strong);
+      transform: translateX(-50%);
     }
 
-    .event-dot.message {
+    .spine-cell::before {
+      top: -12px;
+      height: 14px;
+    }
+
+    .spine-cell::after {
+      top: 24px;
+      bottom: -12px;
+    }
+
+    .event-row:first-child .spine-cell::before,
+    .event-row:last-child .spine-cell::after {
+      display: none;
+    }
+
+    .event-node {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--line-strong);
+      box-shadow: 0 0 0 4px rgba(11, 18, 24, 0.96);
+    }
+
+    .event-node::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--system);
+    }
+
+    .event-node.message::after {
       background: var(--message);
     }
 
-    .event-dot.model_call {
+    .event-node.model_call::after {
       background: var(--model);
     }
 
-    .event-dot.tool_call,
-    .event-dot.rag_retrieval {
+    .event-node.tool_call::after,
+    .event-node.rag_retrieval::after {
       background: var(--tool);
     }
 
-    .event-dot.rag_retrieval {
+    .event-node.rag_retrieval::after {
       background: var(--rag);
     }
 
-    .event-dot.evaluation {
+    .event-node.evaluation::after {
       background: var(--evaluation);
     }
 
-    .event-dot.error {
+    .event-node.error::after {
       background: var(--red);
+    }
+
+    .event-card {
+      display: grid;
+      min-width: 0;
+      gap: 7px;
+    }
+
+    .event-name {
+      font-weight: 760;
+    }
+
+    .event-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .event-signal,
+    .event-stat {
+      display: inline-flex;
+      align-items: center;
+      min-height: 23px;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(16, 26, 34, 0.78);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .event-signal.pass,
+    .event-signal.hit,
+    .event-signal.ok {
+      border-color: rgba(34, 197, 94, 0.38);
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--green);
+    }
+
+    .event-signal.warn,
+    .event-signal.miss {
+      border-color: rgba(245, 158, 11, 0.38);
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--amber);
+    }
+
+    .event-signal.fail,
+    .event-signal.error {
+      border-color: rgba(251, 113, 133, 0.38);
+      background: rgba(251, 113, 133, 0.1);
+      color: var(--red);
     }
 
     .preview {
       display: -webkit-box;
       overflow: hidden;
-      margin-top: 5px;
       color: #a9b7c6;
       font-family: var(--mono);
       font-size: 12px;
@@ -745,7 +856,7 @@ TRACE_VIEWER_HTML = """
       }
 
       .event-row {
-        grid-template-columns: 58px minmax(0, 1fr);
+        grid-template-columns: 52px minmax(0, 1fr);
       }
     }
   </style>
@@ -816,7 +927,7 @@ TRACE_VIEWER_HTML = """
             </div>
           </div>
           <div id="metrics" class="metrics" aria-label="Run summary"></div>
-          <div class="timeline-toolbar" aria-label="Timeline filters">
+          <div class="timeline-toolbar" aria-label="Trace Spine filters">
             <button class="tab" type="button" data-filter="all" aria-pressed="true">All</button>
             <button class="tab" type="button" data-filter="message" aria-pressed="false">Messages</button>
             <button class="tab" type="button" data-filter="model_call" aria-pressed="false">Models</button>
@@ -827,8 +938,8 @@ TRACE_VIEWER_HTML = """
           </div>
           <div id="timeline" class="timeline-list">
             <div class="empty-state">
-              <strong>No timeline selected</strong>
-              <span>Select a run to inspect events, tokens, latency, and failures.</span>
+              <strong>No Trace Spine selected</strong>
+              <span>Select a run to inspect event flow, tokens, latency, and failures.</span>
             </div>
           </div>
         </div>
@@ -1061,7 +1172,7 @@ TRACE_VIEWER_HTML = """
       );
       nodes.metrics.replaceChildren();
       nodes.timeline.replaceChildren(
-        emptyState("No timeline selected", "Select a run to inspect events, tokens, latency, and failures."),
+        emptyState("No Trace Spine selected", "Select a run to inspect event flow, tokens, latency, and failures."),
       );
       nodes.inspector.replaceChildren(
         emptyState("No event selected", "Select a timeline row to inspect its full payload."),
@@ -1083,7 +1194,7 @@ TRACE_VIEWER_HTML = """
         const count = filter === "all" && state.detail
           ? state.detail.timeline.length
           : (counts[filter] || 0);
-        tab.textContent = `${label} ${count}`;
+        tab.replaceChildren(span(label), span(String(count), "tab-count"));
       }
     }
 
@@ -1107,7 +1218,7 @@ TRACE_VIEWER_HTML = """
           renderTimeline();
           renderInspector();
         });
-        row.append(div("sequence mono", [eventDot(event.type), `#${event.sequence}`]), eventBody(event));
+        row.append(spineNode(event), eventBody(event));
         nodes.timeline.append(row);
       }
     }
@@ -1150,17 +1261,38 @@ TRACE_VIEWER_HTML = """
     }
 
     function eventBody(event) {
-      return div("", [
+      return div("event-card", [
         div("event-row-top", [
           badge(event.type),
-          span(event.name || event.type, "truncate"),
+          span(event.name || event.type, "event-name truncate"),
         ]),
-        div("split-line", [
-          span(formatTime(event.timestamp), "meta"),
-          span(extractVerdict(event.payload), "meta"),
-        ]),
+        div("event-summary", eventSummary(event)),
         div("preview", [payloadPreview(event.payload)]),
       ]);
+    }
+
+    function spineNode(event) {
+      return div("spine-cell mono", [
+        span(`#${event.sequence}`),
+        div(`event-node ${event.type}`, []),
+      ]);
+    }
+
+    function eventSummary(event) {
+      const items = [span(formatTime(event.timestamp), "meta")];
+      const latency = extractLatency(event.payload);
+      if (latency !== "") {
+        items.push(span(`${latency}ms`, "event-stat"));
+      }
+      const tokens = extractTokens(event.payload);
+      if (tokens !== "") {
+        items.push(span(`${tokens} tok`, "event-stat"));
+      }
+      const signal = extractSignal(event);
+      if (signal.text) {
+        items.push(span(signal.text, `event-signal ${signal.tone}`));
+      }
+      return items;
     }
 
     function inspectorSection(title, subtitle, payload) {
@@ -1175,13 +1307,6 @@ TRACE_VIEWER_HTML = """
       item.className = `badge ${String(value).replaceAll("_", "-")}`;
       item.textContent = value;
       return item;
-    }
-
-    function eventDot(type) {
-      const dot = document.createElement("span");
-      dot.className = `event-dot ${type}`;
-      dot.setAttribute("aria-hidden", "true");
-      return dot;
     }
 
     function metric(label, value) {
@@ -1202,24 +1327,55 @@ TRACE_VIEWER_HTML = """
     }
 
     function payloadPreview(payload) {
-      const preferred = payload.message || payload.content || payload.answer || payload.query || payload.tool_name;
+      const preferred = (
+        payload.message ||
+        payload.content ||
+        payload.answer ||
+        payload.query ||
+        payload.error ||
+        payload.error_message ||
+        payload.rationale ||
+        payload.tool_name
+      );
       if (typeof preferred === "string") {
         return preferred;
       }
       return JSON.stringify(payload);
     }
 
-    function extractVerdict(payload) {
-      if (payload.verdict) {
-        return `verdict: ${payload.verdict}`;
+    function extractLatency(payload) {
+      const value = payload.latency_ms ?? payload.duration_ms ?? payload.elapsed_ms;
+      return Number.isFinite(Number(value)) ? String(value) : "";
+    }
+
+    function extractTokens(payload) {
+      const value = payload.token_count ?? payload.total_tokens ?? payload.tokens;
+      if (Number.isFinite(Number(value))) {
+        return String(value);
       }
-      if (payload.hit_status) {
-        return `retrieval: ${payload.hit_status}`;
-      }
-      if (payload.latency_ms) {
-        return `${payload.latency_ms}ms`;
+      const prompt = Number(payload.prompt_tokens);
+      const completion = Number(payload.completion_tokens);
+      if (Number.isFinite(prompt) && Number.isFinite(completion)) {
+        return String(prompt + completion);
       }
       return "";
+    }
+
+    function extractSignal(event) {
+      const payload = event.payload || {};
+      if (event.type === "error") {
+        return { text: "error", tone: "error" };
+      }
+      if (payload.verdict) {
+        return { text: `verdict: ${payload.verdict}`, tone: String(payload.verdict).toLowerCase() };
+      }
+      if (payload.hit_status) {
+        return { text: `retrieval: ${payload.hit_status}`, tone: String(payload.hit_status).toLowerCase() };
+      }
+      if (payload.status) {
+        return { text: `status: ${payload.status}`, tone: String(payload.status).toLowerCase() };
+      }
+      return { text: "", tone: "" };
     }
 
     function emptyState(title, message) {

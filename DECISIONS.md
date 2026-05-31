@@ -143,3 +143,9 @@
 - Reason: The product surface is a developer observability console, and the darker treatment makes trace state, event severity, and inspector detail feel more like a focused debugging workspace.
 - Rejected alternatives: Keep the light generic app style, use a cyberpunk/neon data-wall aesthetic, or add decorative WebGL before the core hierarchy is clear.
 - Constraints: Status colors are reserved for event signals and selected/error states; API/auth behavior and the no-build front-end boundary remain unchanged.
+
+## 2026-05-31: Derive Trace Spine signals client-side for F16.2
+- Decision: Keep the F16.2 Trace Spine as a no-build viewer enhancement that derives latency, token, verdict, retrieval, and error chips from existing event payloads.
+- Reason: The current `/v1/runs/{run_id}/detail` contract already contains enough evidence for scan-friendly debugging, so the UI can become more useful without waiting for a new API.
+- Rejected alternatives: Add a new timeline summary endpoint before the visual workflow is proven, or continue rendering plain JSON previews as the primary timeline affordance.
+- Constraints: Signal extraction is intentionally conservative and display-only; typed backend summary APIs remain planned for F16.4.

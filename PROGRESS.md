@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16.1 Observatory Visual System complete
+- Latest checkpoint: F16.2 Trace Spine Timeline complete
 - Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
@@ -86,6 +86,8 @@
 - [x] F16 branch plan recorded as F16.1-F16.5 in `docs/features.json`
 - [x] F16.1 Observatory Visual System added a dark observability palette, AgentOps Trace Observatory branding, Observatory Command Bar, stronger pane weighting, and semantic event colors
 - [x] F16.1 browser validation loaded `/viewer` with `local-dev-key`, confirmed demo run data, desktop three-column layout at 1440px, and mobile single-column layout at 390px
+- [x] F16.2 Trace Spine Timeline added connected event nodes, event summary chips, latency/token extraction, verdict/retrieval/error signals, count badges, and selected-event inspector linkage
+- [x] F16.2 browser validation loaded `/viewer` with `local-dev-key` and confirmed 6 spine nodes, latency/token chips, hit/pass/error signals, filter counts, and inspector selection updates
 
 ## In Progress
 - None
@@ -94,6 +96,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F16.2 Trace Spine Timeline.
-2. Upgrade the event list into a trace-spine workflow view with richer event previews and selected-event linkage.
-3. Continue F16.3 Structured Evidence Inspector, then F16.4 Run Navigator Summary API before returning to F17 Retention Cleanup.
+1. Start F16.3 Structured Evidence Inspector.
+2. Structure the right-side inspector into summary, payload, evidence, metrics, and raw JSON sections.
+3. Continue F16.4 Run Navigator Summary API before returning to F17 Retention Cleanup.

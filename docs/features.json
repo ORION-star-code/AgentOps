@@ -139,8 +139,8 @@
       "id": "F16.2",
       "behavior": "Upgrade the event list into a Trace Spine timeline with type, name, timestamp, latency, token, verdict, retrieval, error preview, event-type counts, and selected-event linkage to the inspector.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F16.1."
+      "state": "passing",
+      "evidence": "2026-05-31: Implemented Trace Spine rows with connected event nodes, event summary chips, latency and token extraction, verdict/retrieval/error signals, count badges in filters, and selected-event linkage to the inspector. In-app browser validation loaded demo run data and confirmed 6 spine nodes, latency/token chips, hit/pass/error signals, filter counts, and inspector selection updates. Validation passed with Ruff, 135 pytest tests, and harness validation."
     },
     {
       "id": "F16.3",
