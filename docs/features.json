@@ -160,8 +160,8 @@
       "id": "F16.5",
       "behavior": "Experiment with a lightweight Trace Field Canvas or SVG mini map that reinforces trace flow without blocking the core debugging workflow.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Optional experiment after the core F16 UI branches; WebGL is deferred unless the simpler SVG or CSS approach proves insufficient."
+      "state": "passing",
+      "evidence": "2026-05-31: Implemented a lightweight SVG/CSS Trace Field mini map in the no-build viewer. The map renders event-type lanes, connected timeline nodes, selected-event state, keyboard-accessible node selection, session-scoped collapse/expand, mobile and reduced-motion fallback hiding, and keeps WebGL deferred. Browser validation loaded /viewer with local-dev-key, confirmed 6 trace nodes, selected evaluation node linkage to Trace Spine and Evidence Inspector, collapse/expand behavior, and stable medium-width layout. Validation passed via scripts/check.ps1 with Ruff, 139 pytest tests, and harness validation."
     },
     {
       "id": "F17",

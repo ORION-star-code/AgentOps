@@ -12,6 +12,15 @@ def test_trace_viewer_shell_is_served_without_embedding_credentials(make_client)
     assert 'data-visual-system="observatory-dark"' in html
     assert "Observatory Command Bar" in html
     assert "Trace Spine filters" in html
+    assert "Trace Field" in html
+    assert "trace-field" in html
+    assert "trace-field-canvas" in html
+    assert "trace-map" in html
+    assert "trace-field-dot" in html
+    assert "renderTraceField" in html
+    assert "selectEventFromField" in html
+    assert "agentops_trace_field" in html
+    assert "createElementNS" in html
     assert "No Trace Spine selected" in html
     assert "event-node" in html
     assert "event-summary" in html

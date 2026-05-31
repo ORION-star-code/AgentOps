@@ -467,7 +467,7 @@ TRACE_VIEWER_HTML = """
 
     .detail {
       display: grid;
-      grid-template-rows: auto auto auto 1fr;
+      grid-template-rows: auto auto auto auto 1fr;
       min-height: 0;
       overflow: hidden;
     }
@@ -534,6 +534,156 @@ TRACE_VIEWER_HTML = """
       white-space: nowrap;
       font-size: 19px;
       letter-spacing: 0;
+    }
+
+    .trace-field {
+      display: grid;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(45, 212, 191, 0.1), rgba(96, 165, 250, 0.035), rgba(167, 139, 250, 0.06)),
+        #091118;
+    }
+
+    .trace-field[data-collapsed="true"] .trace-field-canvas {
+      display: none;
+    }
+
+    .trace-field-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      padding: 9px 14px 0;
+    }
+
+    .trace-field-title {
+      display: flex;
+      gap: 9px;
+      align-items: baseline;
+      min-width: 0;
+    }
+
+    .trace-field-title strong {
+      color: #dffef8;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .trace-field-title span {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .trace-field-toggle {
+      min-height: 28px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    .trace-field-canvas {
+      position: relative;
+      min-height: 92px;
+      padding: 4px 12px 10px;
+      overflow: hidden;
+    }
+
+    .trace-field-canvas .empty-state {
+      padding: 14px 4px 18px;
+    }
+
+    .trace-map {
+      display: block;
+      width: 100%;
+      height: 92px;
+    }
+
+    .trace-field-lane {
+      stroke: rgba(148, 163, 184, 0.12);
+      stroke-dasharray: 4 8;
+      stroke-width: 1;
+    }
+
+    .trace-field-label {
+      fill: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0;
+    }
+
+    .trace-field-link {
+      fill: none;
+      stroke: rgba(148, 163, 184, 0.36);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+    }
+
+    .trace-field-node {
+      cursor: pointer;
+      outline: none;
+    }
+
+    .trace-field-hit-target {
+      fill: transparent;
+    }
+
+    .trace-field-dot {
+      fill: var(--system);
+      stroke: rgba(6, 11, 16, 0.92);
+      stroke-width: 2;
+      transition:
+        r 140ms ease,
+        stroke 140ms ease,
+        opacity 140ms ease;
+    }
+
+    .trace-field-dot.message {
+      fill: var(--message);
+    }
+
+    .trace-field-dot.model_call {
+      fill: var(--model);
+    }
+
+    .trace-field-dot.tool_call {
+      fill: var(--tool);
+    }
+
+    .trace-field-dot.rag_retrieval {
+      fill: var(--rag);
+    }
+
+    .trace-field-dot.evaluation {
+      fill: var(--evaluation);
+    }
+
+    .trace-field-dot.error {
+      fill: var(--red);
+    }
+
+    .trace-field-node:hover .trace-field-dot,
+    .trace-field-node:focus-visible .trace-field-dot,
+    .trace-field-node[aria-current="true"] .trace-field-dot {
+      r: 9;
+      stroke: #f8fafc;
+      stroke-width: 3;
+    }
+
+    .trace-field-node[aria-current="true"] .trace-field-ring {
+      opacity: 1;
+    }
+
+    .trace-field-ring {
+      fill: none;
+      opacity: 0;
+      stroke: rgba(94, 234, 212, 0.48);
+      stroke-width: 2;
     }
 
     .timeline-toolbar {
@@ -946,9 +1096,13 @@ TRACE_VIEWER_HTML = """
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
       }
+
+      .trace-field {
+        display: none;
+      }
     }
 
-    @media (max-width: 1180px) {
+    @media (max-width: 1320px) {
       .workspace {
         grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
       }
@@ -984,6 +1138,10 @@ TRACE_VIEWER_HTML = """
 
       .metrics {
         grid-template-columns: repeat(2, minmax(110px, 1fr));
+      }
+
+      .trace-field {
+        display: none;
       }
 
       .event-row {
@@ -1058,6 +1216,16 @@ TRACE_VIEWER_HTML = """
             </div>
           </div>
           <div id="metrics" class="metrics" aria-label="Run summary"></div>
+          <div id="traceField" class="trace-field" data-collapsed="false" aria-label="Trace Field mini map">
+            <div class="trace-field-header">
+              <div class="trace-field-title">
+                <strong>Trace Field</strong>
+                <span>Run flow mini map</span>
+              </div>
+              <button id="toggleTraceField" class="btn trace-field-toggle" type="button">Hide field</button>
+            </div>
+            <div id="traceFieldCanvas" class="trace-field-canvas"></div>
+          </div>
           <div class="timeline-toolbar" aria-label="Trace Spine filters">
             <button class="tab" type="button" data-filter="all" aria-pressed="true">All</button>
             <button class="tab" type="button" data-filter="message" aria-pressed="false">Messages</button>
@@ -1114,6 +1282,7 @@ TRACE_VIEWER_HTML = """
       selectedEventId: null,
       detail: null,
       filter: "all",
+      traceFieldCollapsed: sessionStorage.getItem("agentops_trace_field") === "hidden",
       busy: false,
     };
 
@@ -1133,7 +1302,10 @@ TRACE_VIEWER_HTML = """
       statusFilter: document.querySelector("#statusFilter"),
       tabs: Array.from(document.querySelectorAll(".tab")),
       timeline: document.querySelector("#timeline"),
+      traceField: document.querySelector("#traceField"),
+      traceFieldCanvas: document.querySelector("#traceFieldCanvas"),
       toggleKey: document.querySelector("#toggleKey"),
+      toggleTraceField: document.querySelector("#toggleTraceField"),
     };
 
     nodes.apiKey.value = sessionStorage.getItem("agentops_api_key") || "";
@@ -1311,6 +1483,7 @@ TRACE_VIEWER_HTML = """
       );
       updateTabCounts();
       renderTimeline();
+      renderTraceField();
       renderInspector();
     }
 
@@ -1327,6 +1500,7 @@ TRACE_VIEWER_HTML = """
         emptyState("No event selected", "Select a timeline row to inspect its full payload."),
       );
       updateTabCounts();
+      renderTraceField();
     }
 
     function updateTabCounts() {
@@ -1344,6 +1518,13 @@ TRACE_VIEWER_HTML = """
           ? state.detail.timeline.length
           : (counts[filter] || 0);
         tab.replaceChildren(span(label), span(String(count), "tab-count"));
+      }
+      syncFilterTabs();
+    }
+
+    function syncFilterTabs() {
+      for (const tab of nodes.tabs) {
+        tab.setAttribute("aria-pressed", String(tab.dataset.filter === state.filter));
       }
     }
 
@@ -1365,11 +1546,134 @@ TRACE_VIEWER_HTML = """
         row.addEventListener("click", () => {
           state.selectedEventId = event.id;
           renderTimeline();
+          renderTraceField();
           renderInspector();
         });
         row.append(spineNode(event), eventBody(event));
         nodes.timeline.append(row);
       }
+    }
+
+    function renderTraceField() {
+      nodes.traceField.dataset.collapsed = String(state.traceFieldCollapsed);
+      nodes.toggleTraceField.textContent = state.traceFieldCollapsed ? "Show field" : "Hide field";
+      nodes.traceFieldCanvas.replaceChildren();
+      if (state.traceFieldCollapsed) {
+        return;
+      }
+      const events = state.detail ? state.detail.timeline : [];
+      if (events.length === 0) {
+        nodes.traceFieldCanvas.append(emptyState("No Trace Field", "Select a run to see its timeline shape."));
+        return;
+      }
+      nodes.traceFieldCanvas.append(traceFieldMap(events));
+    }
+
+    function traceFieldMap(events) {
+      const svg = svgElement("svg", "trace-map");
+      svg.setAttribute("viewBox", "0 0 1000 92");
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", `Trace Field map with ${events.length} events`);
+      for (const [label, y] of [
+        ["msg", 18],
+        ["model", 30],
+        ["tool", 42],
+        ["rag", 54],
+        ["eval", 66],
+        ["err", 78],
+      ]) {
+        const lane = svgElement("line", "trace-field-lane");
+        lane.setAttribute("x1", "58");
+        lane.setAttribute("x2", "972");
+        lane.setAttribute("y1", String(y));
+        lane.setAttribute("y2", String(y));
+        const text = svgElement("text", "trace-field-label");
+        text.setAttribute("x", "8");
+        text.setAttribute("y", String(y + 3));
+        text.textContent = label;
+        svg.append(lane, text);
+      }
+      const points = events.map((event, index) => {
+        const x = events.length === 1 ? 515 : 74 + ((892 * index) / (events.length - 1));
+        return { event, x, y: traceLaneY(event.type) };
+      });
+      if (points.length > 1) {
+        const link = svgElement("path", "trace-field-link");
+        link.setAttribute("d", points.map((point, index) => {
+          return `${index === 0 ? "M" : "L"} ${point.x.toFixed(1)} ${point.y}`;
+        }).join(" "));
+        svg.append(link);
+      }
+      for (const point of points) {
+        svg.append(traceFieldNode(point.event, point.x, point.y));
+      }
+      return svg;
+    }
+
+    function traceFieldNode(event, x, y) {
+      const group = svgElement("g", "trace-field-node");
+      group.dataset.eventId = event.id;
+      group.setAttribute("role", "button");
+      group.setAttribute("tabindex", "0");
+      group.setAttribute("aria-current", String(event.id === state.selectedEventId));
+      group.setAttribute(
+        "aria-label",
+        `Select event ${event.sequence}: ${event.type} ${event.name || ""}`.trim(),
+      );
+      const hitTarget = svgElement("circle", "trace-field-hit-target");
+      hitTarget.setAttribute("cx", String(x));
+      hitTarget.setAttribute("cy", String(y));
+      hitTarget.setAttribute("r", "16");
+      const ring = svgElement("circle", "trace-field-ring");
+      ring.setAttribute("cx", String(x));
+      ring.setAttribute("cy", String(y));
+      ring.setAttribute("r", "13");
+      const dot = svgElement("circle", `trace-field-dot ${event.type}`);
+      dot.setAttribute("cx", String(x));
+      dot.setAttribute("cy", String(y));
+      dot.setAttribute("r", "7");
+      const title = svgElement("title", "");
+      title.textContent = `#${event.sequence} ${event.type} ${event.name || ""}`.trim();
+      group.addEventListener("click", () => selectEventFromField(event.id));
+      group.addEventListener("keydown", (keyboardEvent) => {
+        if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+          keyboardEvent.preventDefault();
+          selectEventFromField(event.id);
+        }
+      });
+      group.append(title, hitTarget, ring, dot);
+      return group;
+    }
+
+    function traceLaneY(type) {
+      const lanes = {
+        message: 18,
+        model_call: 30,
+        tool_call: 42,
+        rag_retrieval: 54,
+        custom: 54,
+        evaluation: 66,
+        error: 78,
+      };
+      return lanes[type] || 54;
+    }
+
+    function selectEventFromField(eventId) {
+      if (!state.detail) {
+        return;
+      }
+      const selected = state.detail.timeline.find((event) => event.id === eventId);
+      if (!selected) {
+        return;
+      }
+      state.selectedEventId = selected.id;
+      if (state.filter !== "all" && state.filter !== selected.type) {
+        state.filter = "all";
+        syncFilterTabs();
+      }
+      renderTimeline();
+      renderTraceField();
+      renderInspector();
     }
 
     function visibleEvents() {
@@ -1743,6 +2047,14 @@ TRACE_VIEWER_HTML = """
       return node;
     }
 
+    function svgElement(tagName, className) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tagName);
+      if (className) {
+        node.setAttribute("class", className);
+      }
+      return node;
+    }
+
     function formatTime(value) {
       if (!value) {
         return "no timestamp";
@@ -1792,14 +2104,18 @@ TRACE_VIEWER_HTML = """
       renderEmptyDetail();
       setStatus("API key cleared for this browser session.", "idle");
     });
+    nodes.toggleTraceField.addEventListener("click", () => {
+      state.traceFieldCollapsed = !state.traceFieldCollapsed;
+      sessionStorage.setItem("agentops_trace_field", state.traceFieldCollapsed ? "hidden" : "visible");
+      renderTraceField();
+    });
     for (const tab of nodes.tabs) {
       tab.dataset.label = tab.textContent;
       tab.addEventListener("click", () => {
         state.filter = tab.dataset.filter;
-        for (const item of nodes.tabs) {
-          item.setAttribute("aria-pressed", String(item === tab));
-        }
+        syncFilterTabs();
         renderTimeline();
+        renderTraceField();
         renderInspector();
       });
     }

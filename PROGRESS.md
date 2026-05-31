@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F17 Retention Cleanup complete
+- Latest checkpoint: F16.5 Trace Field Canvas Experiment complete
 - Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 139 pytest tests, and harness validation
 - Current WIP: none
 
@@ -96,6 +96,10 @@
 - [x] F17 Retention Cleanup implemented dry-run and execute cleanup for expired terminal runs using `AGENTOPS_RETENTION_DAYS`
 - [x] F17 cleanup protects running runs, deletes cascaded timeline events for expired terminal runs, and emits JSON cleanup evidence
 - [x] `scripts/retention.ps1` added and smoke-tested against a temporary SQLite database
+- [x] F16.5 Trace Field Canvas Experiment implemented as a lightweight SVG/CSS mini map
+- [x] Trace Field renders event-type lanes, connected event nodes, selected state, click and keyboard selection, and session-scoped collapse/expand
+- [x] Trace Field hides on mobile and reduced-motion contexts so the core Trace Spine and Inspector remain primary
+- [x] F16.5 browser validation loaded `/viewer` with `local-dev-key`, confirmed 6 trace nodes, evaluation-node linkage to the Evidence Inspector, collapse/expand behavior, and stable medium-width layout
 
 ## In Progress
 - None
@@ -106,4 +110,4 @@
 ## Next Steps
 1. Start F18 Production Hardening when ready.
 2. Prioritize API key hashing/rotation, audit logs, rate limits, and PostgreSQL storage planning.
-3. Keep F16.5 Trace Field Canvas optional unless the viewer needs a minimap after real trace usage.
+3. Revisit the viewer only after real trace usage shows a need for virtualization, saved filters, or multi-run comparison.

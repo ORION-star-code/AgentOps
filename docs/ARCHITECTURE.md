@@ -464,8 +464,8 @@ GET /v1/runs/{run_id}/detail
 - The browser renders JSON payloads with text nodes so trace payloads are inspected as data, not executed as markup.
 - The first version focuses on searchable run list, recent timeline page, compact event scanning, selected-event payload inspection, RAG evidence, evaluations, and errors.
 - The UI remains framework-free until usage proves that larger frontend machinery is worth the maintenance cost.
-- F16 front-end improvements are tracked as flat `F16.x` feature entries. F16.1 establishes a dark Agent Observatory visual system, F16.2 turns the event list into a Trace Spine, F16.3 structures the inspector, and F16.4 adds optional project-scoped run summaries for the navigator.
-- WebGL remains optional and deferred; SVG/CSS trace maps should be preferred until the core debugging workflow needs more spatial context.
+- F16 front-end improvements are tracked as flat `F16.x` feature entries. F16.1 establishes a dark Agent Observatory visual system, F16.2 turns the event list into a Trace Spine, F16.3 structures the inspector, F16.4 adds optional project-scoped run summaries for the navigator, and F16.5 adds a collapsible SVG/CSS Trace Field mini map.
+- WebGL remains deferred; the Trace Field is a lightweight overview layer that hides on mobile and reduced-motion contexts while the Trace Spine and Evidence Inspector remain the primary debugging surfaces.
 
 ### Current Viewer API
 

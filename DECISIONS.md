@@ -167,3 +167,9 @@
 - Reason: Running Agent traces may still be actively written or inspected, so age alone is not enough to delete them safely.
 - Rejected alternatives: Delete by `started_at` regardless of status, run cleanup automatically during API startup, or require a background scheduler before the local MVP can clean old data.
 - Constraints: Dry-run remains the default, execute mode is explicit, `run_events` are removed through SQLite cascade, and retention is disabled when `AGENTOPS_RETENTION_DAYS` is unset.
+
+## 2026-05-31: Keep Trace Field lightweight and optional
+- Decision: Implement F16.5 as an SVG/CSS Trace Field mini map inside the no-build viewer instead of adding WebGL or a canvas engine.
+- Reason: The UI needed a spatial overview of event flow, not a heavy visualization stack; SVG preserves keyboard semantics, browser portability, and low maintenance cost.
+- Rejected alternatives: Add WebGL/Three.js for decorative particles, introduce a frontend build pipeline, or replace the Trace Spine with the mini map.
+- Constraints: Trace Field remains optional and collapsible, hides on mobile and reduced-motion contexts, and the Trace Spine plus Evidence Inspector stay the authoritative debugging surfaces.

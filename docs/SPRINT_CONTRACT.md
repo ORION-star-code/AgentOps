@@ -2,7 +2,7 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F17 Retention Cleanup.
+- Current completed feature: F16.5 Trace Field Canvas Experiment.
 - Current active branch sequence: production hardening.
 - Next feature: F18 Production Hardening.
 
@@ -21,10 +21,11 @@
 - Instrumentation features include fake graph tests for node contexts, wrapper execution, model/tool usage, error capture, run completion/failure, and no real LangGraph dependency.
 - UI features include API contract tests, authenticated data-access checks, project isolation checks, and a basic served-page test that proves credentials are not embedded in the shell.
 - F16 UI branch features are tracked as F16.x entries in `docs/features.json` so the Harness WIP=1 rule remains unchanged without adding nested feature schema.
+- F16.5 keeps visual experimentation lightweight: SVG/CSS mini map first, WebGL deferred unless real debugging workflows need it.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions
 - Frontend build pipeline, routing framework, or chart library work until the no-build viewer proves real workflow needs.
-- WebGL work is optional and deferred until core trace scanning and inspector workflows are strong.
+- WebGL work is optional and deferred unless the lightweight Trace Field proves insufficient on real traces.
 - Full enterprise auth, OAuth, or organization management.
 - Large refactors unrelated to the active feature.
