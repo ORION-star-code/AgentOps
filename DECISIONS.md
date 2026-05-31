@@ -131,3 +131,15 @@
 - Reason: Agent developers need to scan traces repeatedly; showing compact rows plus a dedicated inspector is more useful than dumping full JSON under every event.
 - Rejected alternatives: Introduce a full frontend framework before product workflows are stable, or prioritize decorative visuals over inspection speed.
 - Constraints: Payloads still render as text, API keys stay in `sessionStorage`, reduced-motion users avoid transitions, and future frontend framework migration should preserve the current `/v1` data contract.
+
+## 2026-05-31: Track front-end improvements as F16.x branches
+- Decision: Keep `F16` as the parent Trace Viewer capability and track follow-on UI improvements as `F16.1`, `F16.2`, `F16.3`, `F16.4`, and `F16.5` feature entries.
+- Reason: The harness only requires a flat feature list, so F16.x ids preserve WIP=1 without changing the validator or inventing nested feature schema.
+- Rejected alternatives: Create a new `F19` for the front-end upgrade, modify the harness validator for nested tasks, or continue directly to F17 before finishing the viewer workflow.
+- Constraints: Only one F16.x item may be active at a time; WebGL remains an optional experiment after the core trace scanning and evidence inspection workflow is production-ready.
+
+## 2026-05-31: Use a dark observatory theme for F16.1
+- Decision: Switch the viewer visual system to a dark, low-saturation Agent observatory palette with semantic event colors and a stronger command bar.
+- Reason: The product surface is a developer observability console, and the darker treatment makes trace state, event severity, and inspector detail feel more like a focused debugging workspace.
+- Rejected alternatives: Keep the light generic app style, use a cyberpunk/neon data-wall aesthetic, or add decorative WebGL before the core hierarchy is clear.
+- Constraints: Status colors are reserved for event signals and selected/error states; API/auth behavior and the no-build front-end boundary remain unchanged.

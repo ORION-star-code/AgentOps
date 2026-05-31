@@ -11,28 +11,36 @@ TRACE_VIEWER_HTML = """
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AgentOps Trace Viewer</title>
+  <title>AgentOps Trace Observatory</title>
   <style>
     :root {
-      color-scheme: light;
-      --bg: #f4f6f8;
-      --surface: #ffffff;
-      --surface-raised: #fbfcfd;
-      --surface-quiet: #eef3f6;
-      --ink: #17202a;
-      --muted: #607083;
-      --faint: #8493a3;
-      --line: #d9e1e8;
-      --line-strong: #b8c4ce;
-      --accent: #0f766e;
-      --accent-strong: #0a5e58;
-      --accent-soft: #d9efec;
-      --blue: #2563eb;
-      --green: #13795b;
-      --amber: #a16207;
-      --red: #b42318;
-      --violet: #6d5bd0;
-      --shadow: 0 18px 50px rgba(21, 32, 43, 0.08);
+      color-scheme: dark;
+      --app-bg: #060b10;
+      --bg: #060b10;
+      --surface: #0b1218;
+      --surface-raised: #101a22;
+      --surface-quiet: #13202a;
+      --surface-hot: #172734;
+      --ink: #e5edf5;
+      --muted: #8a99a8;
+      --faint: #566574;
+      --line: rgba(148, 163, 184, 0.16);
+      --line-strong: rgba(148, 163, 184, 0.28);
+      --accent: #2dd4bf;
+      --accent-strong: #5eead4;
+      --accent-soft: rgba(45, 212, 191, 0.16);
+      --message: #22d3ee;
+      --model: #a78bfa;
+      --tool: #f59e0b;
+      --rag: #2dd4bf;
+      --evaluation: #22c55e;
+      --system: #94a3b8;
+      --blue: #60a5fa;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #fb7185;
+      --violet: #a78bfa;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
       --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -49,8 +57,9 @@ TRACE_VIEWER_HTML = """
       min-height: 100%;
       margin: 0;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(244, 246, 248, 0.98)),
-        var(--bg);
+        radial-gradient(circle at 16% 10%, rgba(45, 212, 191, 0.08), transparent 30%),
+        radial-gradient(circle at 84% 8%, rgba(167, 139, 250, 0.08), transparent 28%),
+        linear-gradient(180deg, #071019 0%, var(--app-bg) 46%, #05080c 100%);
       color: var(--ink);
       font-family: var(--sans);
       font-size: 14px;
@@ -99,7 +108,7 @@ TRACE_VIEWER_HTML = """
     select:focus,
     button:focus-visible {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px rgba(94, 234, 212, 0.16);
       outline: none;
     }
 
@@ -120,7 +129,7 @@ TRACE_VIEWER_HTML = """
       min-height: 68px;
       padding: 12px 18px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(6, 11, 16, 0.9);
       backdrop-filter: blur(14px);
     }
 
@@ -137,10 +146,11 @@ TRACE_VIEWER_HTML = """
       width: 34px;
       height: 34px;
       place-items: center;
-      border: 1px solid #87c4bd;
+      border: 1px solid rgba(45, 212, 191, 0.48);
       border-radius: 8px;
-      background: #e4f5f2;
-      color: #064e49;
+      background:
+        linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(96, 165, 250, 0.06));
+      color: #b5fff4;
       font-weight: 800;
     }
 
@@ -200,7 +210,7 @@ TRACE_VIEWER_HTML = """
 
     .status-chip[data-state="error"] {
       border-color: #efb5ad;
-      background: #fff4f2;
+      background: rgba(251, 113, 133, 0.12);
       color: var(--red);
     }
 
@@ -231,7 +241,7 @@ TRACE_VIEWER_HTML = """
     }
 
     .btn:hover {
-      background: var(--surface-quiet);
+      background: var(--surface-hot);
     }
 
     .btn:active {
@@ -241,7 +251,7 @@ TRACE_VIEWER_HTML = """
     .btn-primary {
       border-color: var(--accent);
       background: var(--accent);
-      color: #ffffff;
+      color: #04211d;
     }
 
     .btn-primary:hover {
@@ -250,7 +260,7 @@ TRACE_VIEWER_HTML = """
 
     .workspace {
       display: grid;
-      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) minmax(320px, 390px);
+      grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) minmax(340px, 400px);
       min-height: 0;
       padding: 14px;
       gap: 14px;
@@ -262,7 +272,9 @@ TRACE_VIEWER_HTML = """
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.86);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(11, 18, 24, 0.92);
       box-shadow: var(--shadow);
     }
 
@@ -278,7 +290,7 @@ TRACE_VIEWER_HTML = """
       gap: 10px;
       padding: 14px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(16, 26, 34, 0.88);
     }
 
     .section-title {
@@ -329,7 +341,7 @@ TRACE_VIEWER_HTML = """
 
     .run-row:hover,
     .run-row[aria-current="true"] {
-      background: #f3f8f7;
+      background: rgba(19, 32, 42, 0.92);
     }
 
     .run-row[aria-current="true"] {
@@ -383,14 +395,14 @@ TRACE_VIEWER_HTML = """
     .badge.succeeded,
     .badge.pass {
       border-color: #8fd0bd;
-      background: #eaf8f2;
+      background: rgba(34, 197, 94, 0.12);
       color: var(--green);
     }
 
     .badge.canceled,
     .badge.warn {
       border-color: #efd07a;
-      background: #fff8e6;
+      background: rgba(245, 158, 11, 0.12);
       color: var(--amber);
     }
 
@@ -398,27 +410,33 @@ TRACE_VIEWER_HTML = """
     .badge.fail,
     .badge.error {
       border-color: #efb5ad;
-      background: #fff4f2;
+      background: rgba(251, 113, 133, 0.12);
       color: var(--red);
     }
 
     .badge.model-call {
-      border-color: #b9c7ff;
-      background: #eef2ff;
-      color: var(--blue);
+      border-color: rgba(167, 139, 250, 0.44);
+      background: rgba(167, 139, 250, 0.13);
+      color: var(--model);
     }
 
     .badge.tool-call,
     .badge.rag-retrieval {
-      border-color: #b8c7ee;
-      background: #f1f4ff;
-      color: #4154a8;
+      border-color: rgba(245, 158, 11, 0.42);
+      background: rgba(245, 158, 11, 0.11);
+      color: var(--tool);
+    }
+
+    .badge.rag-retrieval {
+      border-color: rgba(45, 212, 191, 0.42);
+      background: rgba(45, 212, 191, 0.11);
+      color: var(--rag);
     }
 
     .badge.evaluation {
-      border-color: #cec3ff;
-      background: #f4f1ff;
-      color: var(--violet);
+      border-color: rgba(34, 197, 94, 0.42);
+      background: rgba(34, 197, 94, 0.11);
+      color: var(--evaluation);
     }
 
     .detail {
@@ -434,7 +452,7 @@ TRACE_VIEWER_HTML = """
       padding: 16px 18px;
       border-bottom: 1px solid var(--line);
       background:
-        linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0) 42%),
+        linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(167, 139, 250, 0.03) 42%, transparent 68%),
         var(--surface);
     }
 
@@ -499,7 +517,7 @@ TRACE_VIEWER_HTML = """
       align-items: center;
       padding: 10px 14px;
       border-bottom: 1px solid var(--line);
-      background: rgba(251, 252, 253, 0.96);
+      background: rgba(16, 26, 34, 0.92);
     }
 
     .tab {
@@ -514,7 +532,7 @@ TRACE_VIEWER_HTML = """
     .tab[aria-pressed="true"] {
       border-color: #7fc4bc;
       background: var(--accent-soft);
-      color: #064e49;
+      color: #b5fff4;
     }
 
     .timeline-list {
@@ -533,13 +551,13 @@ TRACE_VIEWER_HTML = """
       border-width: 0 0 1px;
       border-color: var(--line);
       border-radius: 0;
-      background: var(--surface);
+      background: rgba(11, 18, 24, 0.92);
       text-align: left;
     }
 
     .event-row:hover,
     .event-row[aria-current="true"] {
-      background: #f7fafc;
+      background: rgba(19, 32, 42, 0.9);
     }
 
     .event-row[aria-current="true"] {
@@ -562,20 +580,24 @@ TRACE_VIEWER_HTML = """
     }
 
     .event-dot.message {
-      background: var(--accent);
+      background: var(--message);
     }
 
     .event-dot.model_call {
-      background: var(--blue);
+      background: var(--model);
     }
 
     .event-dot.tool_call,
     .event-dot.rag_retrieval {
-      background: #4154a8;
+      background: var(--tool);
+    }
+
+    .event-dot.rag_retrieval {
+      background: var(--rag);
     }
 
     .event-dot.evaluation {
-      background: var(--violet);
+      background: var(--evaluation);
     }
 
     .event-dot.error {
@@ -586,7 +608,7 @@ TRACE_VIEWER_HTML = """
       display: -webkit-box;
       overflow: hidden;
       margin-top: 5px;
-      color: #405063;
+      color: #a9b7c6;
       font-family: var(--mono);
       font-size: 12px;
       -webkit-box-orient: vertical;
@@ -632,8 +654,8 @@ TRACE_VIEWER_HTML = """
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #f7f9fb;
-      color: #223140;
+      background: #070c12;
+      color: #c8d5e3;
       font-size: 12px;
       line-height: 1.45;
       white-space: pre-wrap;
@@ -728,13 +750,13 @@ TRACE_VIEWER_HTML = """
     }
   </style>
 </head>
-<body>
-  <div class="app-shell">
+<body data-visual-system="observatory-dark">
+  <div class="app-shell" data-visual-system="observatory-dark">
     <header class="topbar">
-      <div class="brand" aria-label="AgentOps Trace Viewer">
+      <div class="brand" aria-label="AgentOps Trace Observatory">
         <div class="brand-mark" aria-hidden="true">A</div>
         <div>
-          <strong>AgentOps Trace Viewer</strong>
+          <strong>AgentOps Trace Observatory</strong>
           <span>Observe LangGraph and RAG agent runs</span>
         </div>
       </div>
@@ -742,7 +764,7 @@ TRACE_VIEWER_HTML = """
         <span class="status-dot" aria-hidden="true"></span>
         <span id="status" class="status-line" role="status">Enter an API key to load runs.</span>
       </div>
-      <div class="command-bar" aria-label="Viewer commands">
+      <div class="command-bar" aria-label="Observatory Command Bar">
         <label class="sr-only" for="apiKey">API key</label>
         <input id="apiKey" type="password" autocomplete="off" placeholder="X-AgentOps-API-Key">
         <button id="toggleKey" class="btn" type="button">Show</button>

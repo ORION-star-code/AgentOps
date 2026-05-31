@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16 Trace Viewer UI production polish complete
+- Latest checkpoint: F16.1 Observatory Visual System complete
 - Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
@@ -83,6 +83,9 @@
 - [x] Viewer shows run list, selected run summary, recent timeline, RAG evidence, evaluations, and errors
 - [x] F16 tests cover run list project isolation, status/limit filtering, read-scope enforcement, and credential-free viewer shell rendering
 - [x] F16 production UI polish added denser timeline rows, run search, event filter counts, selected-event inspector, copy run ID action, loading/error states, responsive layout, and reduced-motion support
+- [x] F16 branch plan recorded as F16.1-F16.5 in `docs/features.json`
+- [x] F16.1 Observatory Visual System added a dark observability palette, AgentOps Trace Observatory branding, Observatory Command Bar, stronger pane weighting, and semantic event colors
+- [x] F16.1 browser validation loaded `/viewer` with `local-dev-key`, confirmed demo run data, desktop three-column layout at 1440px, and mobile single-column layout at 390px
 
 ## In Progress
 - None
@@ -91,6 +94,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F17 Retention Cleanup.
-2. Implement `AGENTOPS_RETENTION_DAYS` cleanup with dry-run and execute modes.
-3. Protect active runs and verify expired trace deletion with temporary SQLite tests.
+1. Start F16.2 Trace Spine Timeline.
+2. Upgrade the event list into a trace-spine workflow view with richer event previews and selected-event linkage.
+3. Continue F16.3 Structured Evidence Inspector, then F16.4 Run Navigator Summary API before returning to F17 Retention Cleanup.

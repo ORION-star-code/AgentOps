@@ -2,8 +2,10 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F16 Trace Viewer UI.
-- Next feature: F17 Retention Cleanup.
+- Current completed feature: F16.1 Observatory Visual System.
+- Current active branch sequence: F16 front-end production polish.
+- Next feature: F16.2 Trace Spine Timeline.
+- F17 Retention Cleanup resumes after the F16 front-end branches complete or the user explicitly reprioritizes it.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -19,9 +21,11 @@
 - SDK features include API key/header checks, API error mapping, injected-client tests, and an integration test that writes a complete run lifecycle through public APIs.
 - Instrumentation features include fake graph tests for node contexts, wrapper execution, model/tool usage, error capture, run completion/failure, and no real LangGraph dependency.
 - UI features include API contract tests, authenticated data-access checks, project isolation checks, and a basic served-page test that proves credentials are not embedded in the shell.
+- F16 UI branch features are tracked as F16.x entries in `docs/features.json` so the Harness WIP=1 rule remains unchanged without adding nested feature schema.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
 
 ## Exclusions
 - Frontend build pipeline, routing framework, or chart library work until the no-build viewer proves real workflow needs.
+- WebGL work is optional and deferred until core trace scanning and inspector workflows are strong.
 - Full enterprise auth, OAuth, or organization management.
 - Large refactors unrelated to the active feature.

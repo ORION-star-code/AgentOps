@@ -129,11 +129,46 @@
       "evidence": "2026-05-31: Implemented GET /v1/runs for project-scoped run listing plus a no-build FastAPI-served Trace Viewer at GET /viewer. The viewer stores API keys only in browser sessionStorage, calls authenticated /v1 APIs, and renders searchable runs, detail summary, dense timeline rows with event-type counts, selected-event payload inspection, RAG evidence, evaluations, errors, loading/error states, responsive panes, and reduced-motion support. Validation passed with Ruff, 135 pytest tests, and harness validation."
     },
     {
+      "id": "F16.1",
+      "behavior": "Upgrade the Trace Viewer into a dark Agent Observatory visual system with a stronger command bar, weighted panes, semantic event colors, and production-grade loading, error, empty, focus, and selected states.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-05-31: Added the F16 branch queue and implemented the Observatory Visual System. The viewer now uses a dark low-saturation observability palette, AgentOps Trace Observatory branding, an Observatory Command Bar, stronger middle-stage weighting, semantic event colors, dark panel surfaces, and updated shell tests. In-app browser validation loaded demo run data with local-dev-key and confirmed 1440px three-column and 390px single-column layouts. Validation passed with Ruff, 135 pytest tests, and harness validation."
+    },
+    {
+      "id": "F16.2",
+      "behavior": "Upgrade the event list into a Trace Spine timeline with type, name, timestamp, latency, token, verdict, retrieval, error preview, event-type counts, and selected-event linkage to the inspector.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after F16.1."
+    },
+    {
+      "id": "F16.3",
+      "behavior": "Structure the Evidence Inspector into Summary, Payload, Evidence, Metrics, and Raw JSON sections with RAG and evaluation-specific presentations.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after F16.2."
+    },
+    {
+      "id": "F16.4",
+      "behavior": "Enhance the Run Navigator with optional project-scoped run summary data through GET /v1/runs?include_summary=true.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after F16.3."
+    },
+    {
+      "id": "F16.5",
+      "behavior": "Experiment with a lightweight Trace Field Canvas or SVG mini map that reinforces trace flow without blocking the core debugging workflow.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Optional experiment after the core F16 UI branches; WebGL is deferred unless the simpler SVG or CSS approach proves insufficient."
+    },
+    {
       "id": "F17",
       "behavior": "Execute retention cleanup for expired trace data with dry-run and execute modes.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": "Planned after live judge and dataset workflows."
+      "evidence": "Planned after the core F16 front-end branches."
     },
     {
       "id": "F18",
