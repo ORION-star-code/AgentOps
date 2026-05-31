@@ -461,7 +461,8 @@ GET /v1/runs/{run_id}/detail
 - Run list data comes from `GET /v1/runs`, which is scoped to the authenticated project and requires `read`.
 - Run detail data comes from `GET /v1/runs/{run_id}/detail`, preserving existing project ownership checks.
 - The browser renders JSON payloads with text nodes so trace payloads are inspected as data, not executed as markup.
-- The first version focuses on run list, recent timeline page, RAG evidence, evaluations, and errors.
+- The first version focuses on searchable run list, recent timeline page, compact event scanning, selected-event payload inspection, RAG evidence, evaluations, and errors.
+- The UI remains framework-free until usage proves that larger frontend machinery is worth the maintenance cost.
 
 ### Current Viewer API
 

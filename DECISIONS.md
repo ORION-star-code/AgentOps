@@ -125,3 +125,9 @@
 - Reason: The project needs an immediately usable debugging workspace without introducing a frontend build pipeline before UI query patterns stabilize.
 - Rejected alternatives: Add React/Vite immediately, expose unauthenticated server-rendered trace data, or let the viewer read SQLite directly.
 - Constraints: The viewer does not bypass `/v1` authentication, stores the API key only in browser `sessionStorage`, renders trace payloads as text, and remains focused on run list, timeline, RAG evidence, evaluations, and errors.
+
+## 2026-05-31: Polish the viewer as an operational debugging surface
+- Decision: Keep the viewer no-build for now, but upgrade the interface to a production-style workspace with searchable runs, dense timeline rows, per-type counts, selected-event inspection, responsive panes, and explicit loading/error states.
+- Reason: Agent developers need to scan traces repeatedly; showing compact rows plus a dedicated inspector is more useful than dumping full JSON under every event.
+- Rejected alternatives: Introduce a full frontend framework before product workflows are stable, or prioritize decorative visuals over inspection speed.
+- Constraints: Payloads still render as text, API keys stay in `sessionStorage`, reduced-motion users avoid transitions, and future frontend framework migration should preserve the current `/v1` data contract.

@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16 Trace Viewer UI complete
-- Last validation: 2026-05-30, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
+- Latest checkpoint: F16 Trace Viewer UI production polish complete
+- Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -82,6 +82,7 @@
 - [x] Viewer stores API keys only in browser session storage and calls authenticated `/v1` APIs
 - [x] Viewer shows run list, selected run summary, recent timeline, RAG evidence, evaluations, and errors
 - [x] F16 tests cover run list project isolation, status/limit filtering, read-scope enforcement, and credential-free viewer shell rendering
+- [x] F16 production UI polish added denser timeline rows, run search, event filter counts, selected-event inspector, copy run ID action, loading/error states, responsive layout, and reduced-motion support
 
 ## In Progress
 - None

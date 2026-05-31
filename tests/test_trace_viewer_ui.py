@@ -7,6 +7,10 @@ def test_trace_viewer_shell_is_served_without_embedding_credentials(make_client)
     assert "text/html" in response.headers["content-type"]
     html = response.text
     assert "AgentOps Trace Viewer" in html
+    assert "Evidence Inspector" in html
+    assert "Search runs" in html
+    assert "Copy run ID" in html
+    assert "prefers-reduced-motion" in html
     assert "sessionStorage" in html
     assert "X-AgentOps-API-Key" in html
     assert "/v1/runs" in html
