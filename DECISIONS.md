@@ -161,3 +161,9 @@
 - Reason: API clients that only need lightweight run records keep the existing response shape, while the viewer can opt into richer navigation context.
 - Rejected alternatives: Add a separate `/v1/runs/summary` endpoint, always include summaries, or make the viewer fetch every run detail just to populate the navigator.
 - Constraints: Summaries remain project-scoped through the existing `read` dependency and only aggregate persisted timeline evidence.
+
+## 2026-05-31: Retention cleanup deletes only terminal runs
+- Decision: Implement F17 retention cleanup as an explicit dry-run or execute command that deletes terminal runs older than `AGENTOPS_RETENTION_DAYS`.
+- Reason: Running Agent traces may still be actively written or inspected, so age alone is not enough to delete them safely.
+- Rejected alternatives: Delete by `started_at` regardless of status, run cleanup automatically during API startup, or require a background scheduler before the local MVP can clean old data.
+- Constraints: Dry-run remains the default, execute mode is explicit, `run_events` are removed through SQLite cascade, and retention is disabled when `AGENTOPS_RETENTION_DAYS` is unset.

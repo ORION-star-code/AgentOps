@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16.4 Run Navigator Summary API complete
-- Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
+- Latest checkpoint: F17 Retention Cleanup complete
+- Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 139 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -93,6 +93,9 @@
 - [x] F16.4 Run Navigator Summary API added `GET /v1/runs?include_summary=true` with project-scoped aggregate summaries
 - [x] F16.4 viewer now shows run navigator chips for errors, events, tools, RAG, evaluations, tokens, and latency
 - [x] F16.4 tests cover include_summary true/false, invalid query 422, and cross-project non-leakage
+- [x] F17 Retention Cleanup implemented dry-run and execute cleanup for expired terminal runs using `AGENTOPS_RETENTION_DAYS`
+- [x] F17 cleanup protects running runs, deletes cascaded timeline events for expired terminal runs, and emits JSON cleanup evidence
+- [x] `scripts/retention.ps1` added and smoke-tested against a temporary SQLite database
 
 ## In Progress
 - None
@@ -101,6 +104,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F17 Retention Cleanup.
-2. Implement `AGENTOPS_RETENTION_DAYS` cleanup with dry-run and execute modes.
-3. Protect active runs and verify expired trace deletion with temporary SQLite tests.
+1. Start F18 Production Hardening when ready.
+2. Prioritize API key hashing/rotation, audit logs, rate limits, and PostgreSQL storage planning.
+3. Keep F16.5 Trace Field Canvas optional unless the viewer needs a minimap after real trace usage.

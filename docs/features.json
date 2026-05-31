@@ -167,8 +167,8 @@
       "id": "F17",
       "behavior": "Execute retention cleanup for expired trace data with dry-run and execute modes.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F16.4."
+      "state": "passing",
+      "evidence": "2026-05-31: Implemented SQLite retention cleanup using AGENTOPS_RETENTION_DAYS. Cleanup deletes only expired terminal runs and cascaded events, protects running runs, supports dry-run by default and execute mode, returns JSON evidence, and is exposed through python -m agentops_api.retention plus scripts/retention.ps1. Tests cover dry-run, execute deletion, active run protection, disabled retention no-op, and CLI JSON output. Script smoke passed on a temporary SQLite DB. Validation passed with Ruff, 139 pytest tests, and harness validation."
     },
     {
       "id": "F18",

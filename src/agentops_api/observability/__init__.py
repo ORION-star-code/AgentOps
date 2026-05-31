@@ -2,6 +2,7 @@
 
 from agentops_api.observability.repository import (
     DEFAULT_DB_PATH,
+    RetentionCleanupResult,
     RunAlreadyEndedError,
     RunNotFoundError,
     TraceRepository,
@@ -22,6 +23,7 @@ from agentops_api.observability.schemas import (
 
 __all__ = [
     "DEFAULT_DB_PATH",
+    "RetentionCleanupResult",
     "AgentRun",
     "AgentRunCreate",
     "AgentRunListItem",

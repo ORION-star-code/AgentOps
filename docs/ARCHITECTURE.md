@@ -472,6 +472,36 @@ GET /v1/runs/{run_id}/detail
 - `GET /viewer`
 - `GET /v1/runs?limit=50&status=succeeded&include_summary=true`
 
+## F17 Retention Cleanup
+
+Retention cleanup uses `AGENTOPS_RETENTION_DAYS` to compute a cutoff and remove expired terminal run data from SQLite.
+
+```text
+scripts/retention.ps1 [-Execute]
+        |
+        v
+python -m agentops_api.retention
+        |
+        v
+TraceRepository.cleanup_expired_runs(dry_run=True|False)
+        |
+        v
+DELETE terminal expired runs -> run_events cascade
+```
+
+### Cleanup Rules
+
+- Retention is disabled by default when `AGENTOPS_RETENTION_DAYS` is unset.
+- Dry-run is the default mode and returns JSON evidence without deleting data.
+- Execute mode deletes only terminal runs with `ended_at` older than the cutoff.
+- Running runs are never deleted, even when `started_at` is older than the cutoff.
+- `run_events` are deleted through SQLite foreign-key cascade from the deleted runs.
+
+### Current Cleanup Commands
+
+- Dry-run: `powershell -ExecutionPolicy Bypass -File scripts/retention.ps1 -RetentionDays 30`
+- Execute: `powershell -ExecutionPolicy Bypass -File scripts/retention.ps1 -RetentionDays 30 -Execute`
+
 ## F05 Run Detail Contract
 
 Run detail is a single developer-facing payload for inspecting one Agent execution:

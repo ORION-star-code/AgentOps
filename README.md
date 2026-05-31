@@ -22,14 +22,14 @@ $env:AGENTOPS_MIMO_BASE_URL='https://token-plan-cn.xiaomimimo.com/v1'
 $env:AGENTOPS_MIMO_MODEL='mimo-v2.5-pro'
 ```
 
-Trace metadata and event payloads are redacted before persistence when sensitive field names such as `api_key`, `token`, `password`, `secret`, `authorization`, or `cookie` are found. Local retention defaults to indefinite; set `AGENTOPS_RETENTION_DAYS` to a positive integer to configure a retention window for future cleanup jobs.
+Trace metadata and event payloads are redacted before persistence when sensitive field names such as `api_key`, `token`, `password`, `secret`, `authorization`, or `cookie` are found. Local retention defaults to indefinite; set `AGENTOPS_RETENTION_DAYS` to a positive integer or pass `-RetentionDays` to `scripts/retention.ps1` to dry-run or execute cleanup of expired terminal runs.
 
 ## Current API
 
 - `GET /health`
 - `GET /viewer`
 - `POST /v1/runs`
-- `GET /v1/runs?limit=50&status=succeeded`
+- `GET /v1/runs?limit=50&status=succeeded&include_summary=true`
 - `GET /v1/runs/{run_id}`
 - `POST /v1/runs/{run_id}/complete`
 - `POST /v1/runs/{run_id}/fail`
@@ -126,4 +126,5 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
 powershell -ExecutionPolicy Bypass -File scripts/test.ps1
 powershell -ExecutionPolicy Bypass -File scripts/lint.ps1
 powershell -ExecutionPolicy Bypass -File scripts/check.ps1
+powershell -ExecutionPolicy Bypass -File scripts/retention.ps1 -RetentionDays 30
 ```

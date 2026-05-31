@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -33,6 +35,21 @@ class RunNotFoundError(LookupError):
 
 class RunAlreadyEndedError(RuntimeError):
     """Raised when a write targets a run that has already ended."""
+
+
+@dataclass(frozen=True)
+class RetentionCleanupResult:
+    """Outcome of one retention cleanup pass."""
+
+    retention_days: int | None
+    cutoff: datetime | None
+    dry_run: bool
+    expired_run_count: int
+    expired_event_count: int
+    deleted_run_count: int
+    deleted_event_count: int
+    skipped_running_count: int
+    expired_run_ids: tuple[str, ...]
 
 
 class TraceRepository:
@@ -438,6 +455,90 @@ class TraceRepository:
 
         return RegressionReport.model_validate(_from_json(row["report"]))
 
+    def cleanup_expired_runs(
+        self,
+        *,
+        dry_run: bool = True,
+        now: datetime | None = None,
+    ) -> RetentionCleanupResult:
+        """Delete terminal runs older than the configured retention window."""
+
+        if not self.retention_config.enabled:
+            return RetentionCleanupResult(
+                retention_days=None,
+                cutoff=None,
+                dry_run=dry_run,
+                expired_run_count=0,
+                expired_event_count=0,
+                deleted_run_count=0,
+                deleted_event_count=0,
+                skipped_running_count=0,
+                expired_run_ids=(),
+            )
+
+        retention_days = self.retention_config.days
+        if retention_days is None:
+            raise ValueError("retention cleanup requires configured retention days")
+        current_time = now or now_utc()
+        cutoff = current_time - timedelta(days=retention_days)
+        cutoff_iso = cutoff.isoformat()
+
+        connection = self._connect()
+        try:
+            expired_rows = connection.execute(
+                """
+                SELECT id
+                FROM runs
+                WHERE status != ?
+                    AND ended_at IS NOT NULL
+                    AND ended_at < ?
+                ORDER BY ended_at ASC, id ASC
+                """,
+                (RunStatus.RUNNING.value, cutoff_iso),
+            ).fetchall()
+            expired_run_ids = tuple(row["id"] for row in expired_rows)
+            skipped_running_count = connection.execute(
+                """
+                SELECT COUNT(*)
+                FROM runs
+                WHERE status = ?
+                    AND started_at < ?
+                """,
+                (RunStatus.RUNNING.value, cutoff_iso),
+            ).fetchone()[0]
+            expired_event_count = self._count_events_for_run_ids(connection, expired_run_ids)
+
+            deleted_run_count = 0
+            deleted_event_count = 0
+            if not dry_run and expired_run_ids:
+                connection.execute("BEGIN IMMEDIATE")
+                expired_event_count = self._count_events_for_run_ids(connection, expired_run_ids)
+                placeholders = ",".join("?" for _ in expired_run_ids)
+                connection.execute(
+                    f"DELETE FROM runs WHERE id IN ({placeholders})",
+                    expired_run_ids,
+                )
+                connection.commit()
+                deleted_run_count = len(expired_run_ids)
+                deleted_event_count = expired_event_count
+
+            return RetentionCleanupResult(
+                retention_days=retention_days,
+                cutoff=cutoff,
+                dry_run=dry_run,
+                expired_run_count=len(expired_run_ids),
+                expired_event_count=expired_event_count,
+                deleted_run_count=deleted_run_count,
+                deleted_event_count=deleted_event_count,
+                skipped_running_count=skipped_running_count,
+                expired_run_ids=expired_run_ids,
+            )
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path, timeout=30)
         connection.row_factory = sqlite3.Row
@@ -480,6 +581,19 @@ class TraceRepository:
         if finished is None:
             raise RunNotFoundError(run_id)
         return finished
+
+    def _count_events_for_run_ids(
+        self,
+        connection: sqlite3.Connection,
+        run_ids: tuple[str, ...],
+    ) -> int:
+        if not run_ids:
+            return 0
+        placeholders = ",".join("?" for _ in run_ids)
+        return connection.execute(
+            f"SELECT COUNT(*) FROM run_events WHERE run_id IN ({placeholders})",
+            run_ids,
+        ).fetchone()[0]
 
 
 def _to_json(value: dict[str, Any]) -> str:

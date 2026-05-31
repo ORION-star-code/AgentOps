@@ -2,9 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F16.4 Run Navigator Summary API.
+- Current completed feature: F17 Retention Cleanup.
 - Current active branch sequence: production hardening.
-- Next feature: F17 Retention Cleanup.
+- Next feature: F18 Production Hardening.
 
 ## Verification Standards
 - `python harness/validate.py` passes.

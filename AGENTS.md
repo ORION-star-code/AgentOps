@@ -12,6 +12,7 @@ Developer observability and automated evaluation platform for LangGraph and RAG 
 - Test: `powershell -ExecutionPolicy Bypass -File scripts/test.ps1`
 - Lint/static checks: `powershell -ExecutionPolicy Bypass -File scripts/lint.ps1`
 - Complete validation: `powershell -ExecutionPolicy Bypass -File scripts/check.ps1`
+- Retention dry-run: `powershell -ExecutionPolicy Bypass -File scripts/retention.ps1 -RetentionDays 30`
 
 ## Hard Rules
 - Keep WIP=1. Only one feature in `docs/features.json` may be `active`.
