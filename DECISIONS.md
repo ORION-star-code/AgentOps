@@ -155,3 +155,9 @@
 - Reason: Agent developers need fast answers about retrieval hits, source quality, metric scores, thresholds, and failure context; raw JSON should remain available for auditing but not dominate the inspection flow.
 - Rejected alternatives: Keep appending every RAG/evaluation/error payload below the selected event, or hide raw JSON completely.
 - Constraints: The no-build viewer remains framework-free, Copy JSON exposes only the selected payload, and richer cross-event correlation is left to later viewer work.
+
+## 2026-05-31: Keep run list summaries optional for F16.4
+- Decision: Add `include_summary=true` to `GET /v1/runs` instead of always returning aggregate summary data.
+- Reason: API clients that only need lightweight run records keep the existing response shape, while the viewer can opt into richer navigation context.
+- Rejected alternatives: Add a separate `/v1/runs/summary` endpoint, always include summaries, or make the viewer fetch every run detail just to populate the navigator.
+- Constraints: Summaries remain project-scoped through the existing `read` dependency and only aggregate persisted timeline evidence.

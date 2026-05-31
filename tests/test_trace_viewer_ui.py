@@ -21,6 +21,9 @@ def test_trace_viewer_shell_is_served_without_embedding_credentials(make_client)
     assert "Metrics" in html
     assert "Raw JSON" in html
     assert "Copy JSON" in html
+    assert "include_summary" in html
+    assert "run-summary" in html
+    assert "run-signal" in html
     assert "ragEvidenceSection" in html
     assert "evaluationMetricsSection" in html
     assert "metric-bar" in html

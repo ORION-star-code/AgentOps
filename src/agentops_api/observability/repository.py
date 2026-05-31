@@ -11,6 +11,7 @@ from uuid import uuid4
 from agentops_api.observability.schemas import (
     AgentRun,
     AgentRunCreate,
+    AgentRunListItem,
     RunEvent,
     RunEventCreate,
     RunDetailSummary,
@@ -165,6 +166,75 @@ class TraceRepository:
         with self._connect() as connection:
             rows = connection.execute(query, parameters).fetchall()
         return [_row_to_run(row) for row in rows]
+
+    def list_runs_with_summaries(
+        self,
+        project_id: str,
+        *,
+        limit: int,
+        status: RunStatus | None = None,
+    ) -> list[AgentRunListItem]:
+        conditions = ["project_id = ?"]
+        parameters: list[Any] = [project_id]
+        if status is not None:
+            conditions.append("status = ?")
+            parameters.append(status.value)
+
+        query = f"""
+            WITH selected_runs AS (
+                SELECT *
+                FROM runs
+                WHERE {" AND ".join(conditions)}
+                ORDER BY started_at DESC, id DESC
+                LIMIT ?
+            )
+            SELECT
+                selected_runs.*,
+                COUNT(run_events.id) AS event_count,
+                SUM(CASE WHEN run_events.type = 'message' THEN 1 ELSE 0 END)
+                    AS message_count,
+                SUM(CASE WHEN run_events.type = 'model_call' THEN 1 ELSE 0 END)
+                    AS model_call_count,
+                SUM(CASE WHEN run_events.type = 'tool_call' THEN 1 ELSE 0 END)
+                    AS tool_call_count,
+                SUM(CASE WHEN run_events.type = 'rag_retrieval' THEN 1 ELSE 0 END)
+                    AS rag_retrieval_count,
+                SUM(CASE WHEN run_events.type = 'evaluation' THEN 1 ELSE 0 END)
+                    AS evaluation_count,
+                SUM(CASE WHEN run_events.type = 'error' THEN 1 ELSE 0 END)
+                    AS error_count,
+                SUM(
+                    COALESCE(
+                        json_extract(run_events.payload, '$.token_count'),
+                        json_extract(run_events.payload, '$.usage.token_count'),
+                        0
+                    )
+                ) AS total_tokens,
+                SUM(
+                    COALESCE(
+                        json_extract(run_events.payload, '$.latency_ms'),
+                        json_extract(run_events.payload, '$.usage.latency_ms'),
+                        0
+                    )
+                ) AS total_latency_ms
+            FROM selected_runs
+            LEFT JOIN run_events ON run_events.run_id = selected_runs.id
+            GROUP BY
+                selected_runs.id,
+                selected_runs.project_id,
+                selected_runs.session_id,
+                selected_runs.name,
+                selected_runs.status,
+                selected_runs.started_at,
+                selected_runs.ended_at,
+                selected_runs.metadata
+            ORDER BY selected_runs.started_at DESC, selected_runs.id DESC
+        """
+        parameters.append(limit)
+
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [_row_to_run_list_item(row) for row in rows]
 
     def append_event(self, run_id: str, payload: RunEventCreate) -> RunEvent:
         redacted_payload = redact_json_object(payload.payload, path_prefix="payload").value
@@ -434,6 +504,22 @@ def _row_to_run(row: sqlite3.Row) -> AgentRun:
         ended_at=row["ended_at"],
         metadata=_from_json(row["metadata"]),
     )
+
+
+def _row_to_run_list_item(row: sqlite3.Row) -> AgentRunListItem:
+    run = _row_to_run(row)
+    summary = RunDetailSummary(
+        event_count=row["event_count"] or 0,
+        message_count=row["message_count"] or 0,
+        model_call_count=row["model_call_count"] or 0,
+        tool_call_count=row["tool_call_count"] or 0,
+        rag_retrieval_count=row["rag_retrieval_count"] or 0,
+        evaluation_count=row["evaluation_count"] or 0,
+        error_count=row["error_count"] or 0,
+        total_tokens=row["total_tokens"] or 0,
+        total_latency_ms=row["total_latency_ms"] or 0,
+    )
+    return AgentRunListItem(**run.model_dump(), summary=summary)
 
 
 def _row_to_event(row: sqlite3.Row) -> RunEvent:

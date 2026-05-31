@@ -2,7 +2,7 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16.3 Structured Evidence Inspector complete
+- Latest checkpoint: F16.4 Run Navigator Summary API complete
 - Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 135 pytest tests, and harness validation
 - Current WIP: none
 
@@ -90,6 +90,9 @@
 - [x] F16.2 browser validation loaded `/viewer` with `local-dev-key` and confirmed 6 spine nodes, latency/token chips, hit/pass/error signals, filter counts, and inspector selection updates
 - [x] F16.3 Structured Evidence Inspector added Summary, Payload, Evidence, Metrics, and collapsed Raw JSON sections with Copy JSON
 - [x] F16.3 browser validation confirmed RAG source/score/excerpt/citation evidence, evaluation metric rows and bars, and collapsed Raw JSON
+- [x] F16.4 Run Navigator Summary API added `GET /v1/runs?include_summary=true` with project-scoped aggregate summaries
+- [x] F16.4 viewer now shows run navigator chips for errors, events, tools, RAG, evaluations, tokens, and latency
+- [x] F16.4 tests cover include_summary true/false, invalid query 422, and cross-project non-leakage
 
 ## In Progress
 - None
@@ -98,6 +101,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F16.4 Run Navigator Summary API.
-2. Add optional `GET /v1/runs?include_summary=true` aggregation with project isolation.
-3. Return to F17 Retention Cleanup after F16.4 passes.
+1. Start F17 Retention Cleanup.
+2. Implement `AGENTOPS_RETENTION_DAYS` cleanup with dry-run and execute modes.
+3. Protect active runs and verify expired trace deletion with temporary SQLite tests.

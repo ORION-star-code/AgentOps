@@ -28,6 +28,7 @@ from agentops_api.evaluation import (
 from agentops_api.observability import (
     AgentRun,
     AgentRunCreate,
+    AgentRunListItem,
     RunAlreadyEndedError,
     RunEvent,
     RunEventCreate,
@@ -118,14 +119,28 @@ def create_run(
     return repository.create_run(payload)
 
 
-@router.get("/v1/runs", response_model=list[AgentRun])
+@router.get(
+    "/v1/runs",
+    response_model=list[AgentRunListItem],
+    response_model_exclude_none=True,
+)
 def list_runs(
     repository: Annotated[TraceRepository, Depends(get_trace_repository)],
     principal: RequireRead,
     limit: Annotated[int, Query(ge=1, le=MAX_RUN_LIMIT)] = DEFAULT_RUN_LIMIT,
     run_status: Annotated[RunStatus | None, Query(alias="status")] = None,
-) -> list[AgentRun]:
-    return repository.list_runs(principal.project_id, limit=limit, status=run_status)
+    include_summary: bool = False,
+) -> list[AgentRunListItem]:
+    if include_summary:
+        return repository.list_runs_with_summaries(
+            principal.project_id,
+            limit=limit,
+            status=run_status,
+        )
+    return [
+        AgentRunListItem(**run.model_dump())
+        for run in repository.list_runs(principal.project_id, limit=limit, status=run_status)
+    ]
 
 
 @router.get("/v1/runs/{run_id}", response_model=AgentRun)

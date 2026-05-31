@@ -339,6 +339,32 @@ TRACE_VIEWER_HTML = """
       text-align: left;
     }
 
+    .run-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .run-signal {
+      display: inline-flex;
+      min-height: 21px;
+      align-items: center;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(16, 26, 34, 0.7);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .run-signal.error {
+      border-color: rgba(251, 113, 133, 0.38);
+      background: rgba(251, 113, 133, 0.1);
+      color: var(--red);
+    }
+
     .run-row:hover,
     .run-row[aria-current="true"] {
       background: rgba(19, 32, 42, 0.92);
@@ -1158,7 +1184,7 @@ TRACE_VIEWER_HTML = """
         sessionStorage.setItem("agentops_api_key", getApiKey());
         setStatus("Loading runs...", "busy");
         const status = nodes.statusFilter.value;
-        const query = new URLSearchParams({ limit: "50" });
+        const query = new URLSearchParams({ limit: "50", include_summary: "true" });
         if (status) {
           query.set("status", status);
         }
@@ -1216,9 +1242,27 @@ TRACE_VIEWER_HTML = """
           `${formatTime(run.started_at)} ${run.session_id || run.project_id}`,
         ]);
         const id = div("meta truncate", [run.id]);
-        row.append(top, meta, id);
+        row.append(top, meta, runSummaryChips(run.summary), id);
         nodes.runList.append(row);
       }
+    }
+
+    function runSummaryChips(summary) {
+      if (!summary) {
+        return div("run-summary", []);
+      }
+      const chips = [
+        span(`E ${summary.event_count}`, "run-signal"),
+        span(`T ${summary.tool_call_count}`, "run-signal"),
+        span(`RAG ${summary.rag_retrieval_count}`, "run-signal"),
+        span(`Eval ${summary.evaluation_count}`, "run-signal"),
+        span(`${summary.total_tokens} tok`, "run-signal"),
+        span(`${summary.total_latency_ms}ms`, "run-signal"),
+      ];
+      if (summary.error_count > 0) {
+        chips.unshift(span(`Err ${summary.error_count}`, "run-signal error"));
+      }
+      return div("run-summary", chips);
     }
 
     function filteredRuns() {

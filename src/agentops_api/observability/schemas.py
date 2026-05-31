@@ -116,6 +116,12 @@ class RunDetailSummary(BaseModel):
     total_latency_ms: int
 
 
+class AgentRunListItem(AgentRun):
+    """Run list item with optional lightweight summary counts."""
+
+    summary: RunDetailSummary | None = None
+
+
 class RunDetail(BaseModel):
     """Aggregated run detail contract for debugging one Agent execution."""
 

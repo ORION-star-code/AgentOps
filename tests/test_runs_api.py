@@ -94,6 +94,98 @@ def test_list_runs_supports_limit_and_status_filter(make_client) -> None:
     assert invalid_limit_response.status_code == 422
 
 
+def test_list_runs_can_include_project_scoped_summary(make_client) -> None:
+    client = make_client()
+    other_client = make_client(project_id="other-project")
+    run = client.post(
+        "/v1/runs",
+        json={"project_id": "demo-project", "name": "summary run"},
+    ).json()
+    other_run = other_client.post(
+        "/v1/runs",
+        json={"project_id": "other-project", "name": "other summary run"},
+    ).json()
+    client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={
+            "type": "message",
+            "name": "user_input",
+            "payload": {"content": "Debug this run."},
+        },
+    )
+    client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={
+            "type": "model_call",
+            "name": "planner",
+            "payload": {"latency_ms": 320, "token_count": 90},
+        },
+    )
+    client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={
+            "type": "tool_call",
+            "name": "retrieve_documents",
+            "payload": {"usage": {"latency_ms": 120, "token_count": 25}},
+        },
+    )
+    client.post(
+        f"/v1/runs/{run['id']}/rag/evidence",
+        json={
+            "query": "What policy applies?",
+            "hit_status": "hit",
+            "chunks": [
+                {
+                    "chunk_id": "chunk-1",
+                    "source_uri": "kb://policy/123",
+                    "content_preview": "The policy applies to enterprise users.",
+                    "score": 0.91,
+                }
+            ],
+            "citations": [{"chunk_id": "chunk-1"}],
+        },
+    )
+    client.post(
+        f"/v1/runs/{run['id']}/evaluations",
+        json={
+            "answer": "The policy applies to enterprise users.",
+            "metrics": [{"name": "groundedness", "score": 0.88}],
+        },
+    )
+    client.post(
+        f"/v1/runs/{run['id']}/events",
+        json={"type": "error", "name": "retry", "payload": {"message": "Recovered."}},
+    )
+    other_client.post(
+        f"/v1/runs/{other_run['id']}/events",
+        json={"type": "error", "payload": {"message": "Other project."}},
+    )
+
+    plain_response = client.get("/v1/runs")
+    summary_response = client.get("/v1/runs?include_summary=true")
+    invalid_response = client.get("/v1/runs?include_summary=maybe")
+
+    assert plain_response.status_code == 200
+    assert "summary" not in plain_response.json()[0]
+    assert summary_response.status_code == 200
+    runs = {item["id"]: item for item in summary_response.json()}
+    assert run["id"] in runs
+    assert other_run["id"] not in runs
+    summary = runs[run["id"]]["summary"]
+    assert summary == {
+        "event_count": 6,
+        "message_count": 1,
+        "model_call_count": 1,
+        "tool_call_count": 1,
+        "rag_retrieval_count": 1,
+        "evaluation_count": 1,
+        "error_count": 1,
+        "total_tokens": 115,
+        "total_latency_ms": 440,
+    }
+    assert invalid_response.status_code == 422
+
+
 def test_list_runs_requires_read_scope(make_client) -> None:
     unauthenticated_client = make_client(include_auth_header=False)
     insufficient_client = make_client(scopes=[ApiScope.INGEST])

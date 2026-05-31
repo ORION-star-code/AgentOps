@@ -153,8 +153,8 @@
       "id": "F16.4",
       "behavior": "Enhance the Run Navigator with optional project-scoped run summary data through GET /v1/runs?include_summary=true.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
-      "state": "not_started",
-      "evidence": "Planned after F16.3."
+      "state": "passing",
+      "evidence": "2026-05-31: Added optional GET /v1/runs?include_summary=true support with project-scoped aggregate summaries for event_count, model/tool/RAG/evaluation/error counts, total_tokens, and total_latency_ms. The default response still omits summary when include_summary is false. The viewer now requests summaries and shows run navigator chips for errors, events, tools, RAG, evaluations, tokens, and latency. Tests cover include_summary true/false, invalid query 422, and cross-project non-leakage. In-app browser validation confirmed run summary chips. Validation passed with Ruff, 136 pytest tests, and harness validation."
     },
     {
       "id": "F16.5",
@@ -168,7 +168,7 @@
       "behavior": "Execute retention cleanup for expired trace data with dry-run and execute modes.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": "Planned after the core F16 front-end branches."
+      "evidence": "Planned after F16.4."
     },
     {
       "id": "F18",

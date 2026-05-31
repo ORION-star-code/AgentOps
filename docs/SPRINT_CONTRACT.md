@@ -2,10 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F16.3 Structured Evidence Inspector.
-- Current active branch sequence: F16 front-end production polish.
-- Next feature: F16.4 Run Navigator Summary API.
-- F17 Retention Cleanup resumes after the F16 front-end branches complete or the user explicitly reprioritizes it.
+- Current completed feature: F16.4 Run Navigator Summary API.
+- Current active branch sequence: production hardening.
+- Next feature: F17 Retention Cleanup.
 
 ## Verification Standards
 - `python harness/validate.py` passes.

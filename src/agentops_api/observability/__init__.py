@@ -9,6 +9,7 @@ from agentops_api.observability.repository import (
 from agentops_api.observability.schemas import (
     AgentRun,
     AgentRunCreate,
+    AgentRunListItem,
     RunEvent,
     RunEventCreate,
     RunEventType,
@@ -23,6 +24,7 @@ __all__ = [
     "DEFAULT_DB_PATH",
     "AgentRun",
     "AgentRunCreate",
+    "AgentRunListItem",
     "RunEvent",
     "RunEventCreate",
     "RunEventType",
