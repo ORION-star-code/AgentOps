@@ -12,6 +12,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 - `agentops_api.audit`: Non-sensitive security audit event contracts.
 - `agentops_api.security`: API key authentication, scope checks, and project isolation.
 - `agentops_api.privacy`: Sensitive JSON redaction and retention configuration.
+- `agentops_api.rate_limit`: Local per-key fixed-window request limiting.
 - `agentops_api.observability`: Agent run traces, reasoning timeline, tool calls, token usage, latency, and errors.
 - `agentops_api.rag`: Retrieval queries, chunks, citations, hit/miss signals, and grounding evidence.
 - `agentops_api.evaluation`: Hallucination risk, groundedness, answer trustworthiness, and regression checks.
@@ -73,6 +74,37 @@ audit_events table
 - `status_code`, `outcome`, `reason`, and `timestamp`.
 
 Audit events intentionally do not store request bodies, response bodies, query strings, or raw API keys. Missing-key and invalid-key requests are still audited, but without project or key context. Route-level failures such as cross-project access are recorded with the authenticated project/key context and a failed outcome.
+
+## F18.3 Rate Limit Boundary
+
+Authenticated `/v1` requests pass through a local fixed-window limiter after API key authentication succeeds:
+
+```text
+X-AgentOps-API-Key
+        |
+        v
+ApiKeyStore authenticates credential
+        |
+        v
+rate_limit_id = key_id or non-secret key hash prefix
+        |
+        v
+FixedWindowRateLimiter
+        |
+        +--> allowed: continue to scope and project checks
+        |
+        +--> blocked: 429 Rate limit exceeded
+```
+
+### Rate Limit Configuration
+
+- `AGENTOPS_RATE_LIMIT_PER_MINUTE`: requests per authenticated key per 60-second window.
+- Default: `600`.
+- Disabled values: `0`, `false`, `off`, or `disabled`.
+
+Rate-limited responses return `429` with `Retry-After`, `X-RateLimit-Limit`, and `X-RateLimit-Remaining`. The audit log records blocked requests with `reason = "rate_limited"`.
+
+This is an MVP/local limiter. It is process-local, so multi-process or multi-host deployments need a shared limiter through PostgreSQL, Redis, or an API gateway before public hosting.
 
 ## F07 Privacy Boundary
 

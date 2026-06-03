@@ -40,6 +40,7 @@ from agentops_api.observability import (
     build_run_detail,
 )
 from agentops_api.rag import RagEvidence
+from agentops_api.rate_limit import FixedWindowRateLimiter
 from agentops_api.security import ApiKeyStore, ApiScope, AuthenticatedPrincipal
 
 router = APIRouter()
@@ -69,10 +70,15 @@ def get_mimo_judge_provider(request: Request) -> MimoJudgeProvider:
     return request.app.state.mimo_judge_provider
 
 
+def get_rate_limiter(request: Request) -> FixedWindowRateLimiter:
+    return request.app.state.rate_limiter
+
+
 def require_scope(required_scope: ApiScope):
     def dependency(
         request: Request,
         store: Annotated[ApiKeyStore, Depends(get_api_key_store)],
+        rate_limiter: Annotated[FixedWindowRateLimiter, Depends(get_rate_limiter)],
         api_key: Annotated[str | None, Header(alias=API_KEY_HEADER)] = None,
     ) -> AuthenticatedPrincipal:
         request.state.agentops_audit_scope = required_scope.value
@@ -92,6 +98,7 @@ def require_scope(required_scope: ApiScope):
             )
         request.state.agentops_audit_project_id = principal.project_id
         request.state.agentops_audit_key_id = principal.key_id
+        _enforce_rate_limit(request, rate_limiter, principal)
         if not principal.allows(required_scope):
             request.state.agentops_audit_reason = "insufficient_scope"
             raise HTTPException(
@@ -469,6 +476,27 @@ def _ensure_project_access(principal: AuthenticatedPrincipal, project_id: str) -
             status_code=status.HTTP_403_FORBIDDEN,
             detail="API key cannot access this project",
         )
+
+
+def _enforce_rate_limit(
+    request: Request,
+    rate_limiter: FixedWindowRateLimiter,
+    principal: AuthenticatedPrincipal,
+) -> None:
+    decision = rate_limiter.check(principal.rate_limit_id)
+    if decision.allowed:
+        return
+
+    request.state.agentops_audit_reason = "rate_limited"
+    raise HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail="Rate limit exceeded",
+        headers={
+            "Retry-After": str(decision.reset_after_seconds),
+            "X-RateLimit-Limit": str(decision.limit),
+            "X-RateLimit-Remaining": str(decision.remaining),
+        },
+    )
 
 
 def _ensure_run_accepts_write(run: AgentRun) -> None:

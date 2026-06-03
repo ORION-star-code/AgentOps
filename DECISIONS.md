@@ -185,3 +185,9 @@
 - Reason: AgentOps needs accountable security evidence before hosted use, and F18.1 `key_id` now gives each request a stable non-secret credential identifier.
 - Rejected alternatives: Log raw request payloads for richer forensics, expose an audit API before access patterns are known, or create a separate audit database before the storage adapter boundary is mature.
 - Constraints: Audit rows store project ID, key ID, required scope, method, route path, status code, outcome, reason, and timestamp only. Query strings, request bodies, response bodies, and raw API keys are intentionally excluded.
+
+## 2026-06-03: Start rate limiting with a local per-key fixed window
+- Decision: Protect authenticated `/v1` requests with an in-process fixed-window limiter configured by `AGENTOPS_RATE_LIMIT_PER_MINUTE`.
+- Reason: AgentOps needs a basic cost and abuse guard before hosted use, while the project does not yet have Redis, PostgreSQL advisory locks, or a distributed deployment topology.
+- Rejected alternatives: Add Redis immediately, rate-limit by raw API key, rate-limit only write endpoints, or block missing/invalid keys through the per-key limiter before authentication can identify a credential.
+- Constraints: The limiter is local to one process and suitable for MVP/local deployments. It keys by non-secret `key_id` when available, otherwise by a short API key hash prefix. Distributed rate limiting should be revisited with the PostgreSQL/Redis production storage work.

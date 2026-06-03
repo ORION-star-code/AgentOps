@@ -74,6 +74,13 @@ class ApiKeyCredential:
             return False
         return compare_digest(self.key_hash, candidate_hash)
 
+    @property
+    def rate_limit_id(self) -> str:
+        if self.key_id is not None:
+            return f"key_id:{self.key_id}"
+        digest = self.key_hash.removeprefix(API_KEY_HASH_PREFIX)
+        return f"key_hash_prefix:{digest[:16]}"
+
 
 @dataclass(frozen=True)
 class AuthenticatedPrincipal:
@@ -82,6 +89,7 @@ class AuthenticatedPrincipal:
     project_id: str
     scopes: frozenset[ApiScope]
     key_id: str | None = None
+    rate_limit_id: str = ""
 
     @classmethod
     def from_credential(cls, credential: ApiKeyCredential) -> AuthenticatedPrincipal:
@@ -89,6 +97,7 @@ class AuthenticatedPrincipal:
             project_id=credential.project_id,
             scopes=credential.scopes,
             key_id=credential.key_id,
+            rate_limit_id=credential.rate_limit_id,
         )
 
     def allows(self, required_scope: ApiScope) -> bool:

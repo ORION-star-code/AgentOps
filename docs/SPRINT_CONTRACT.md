@@ -2,9 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F18.2 Audit Log.
+- Current completed feature: F18.3 Rate Limiting.
 - Current active branch sequence: production hardening.
-- Next feature: F18.3 Rate Limiting.
+- Next feature: F18.4 PostgreSQL Storage Adapter Boundary.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -22,6 +22,7 @@
 - UI features include API contract tests, authenticated data-access checks, project isolation checks, and a basic served-page test that proves credentials are not embedded in the shell.
 - API key hardening features include hashed credential configuration, key identifier propagation, revoked key rejection, rotation tests, and no raw key persistence in credential objects.
 - Audit log features include positive and negative security request coverage and must prove audit rows exclude raw API keys, request payloads, and query strings.
+- Rate limiting features include limit enforcement, reset behavior, per-key isolation, disabled mode, 429 headers, audit evidence, and proof that raw API keys are not used as limiter identities.
 - F16 UI branch features are tracked as F16.x entries in `docs/features.json` so the Harness WIP=1 rule remains unchanged without adding nested feature schema.
 - F16.5 keeps visual experimentation lightweight: SVG/CSS mini map first, WebGL deferred unless real debugging workflows need it.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
@@ -30,4 +31,5 @@
 - Frontend build pipeline, routing framework, or chart library work until the no-build viewer proves real workflow needs.
 - WebGL work is optional and deferred unless the lightweight Trace Field proves insufficient on real traces.
 - Full enterprise auth, OAuth, or organization management.
+- Distributed rate limiting or Redis until hosted deployment topology is chosen.
 - Large refactors unrelated to the active feature.

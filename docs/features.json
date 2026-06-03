@@ -185,6 +185,20 @@
       "evidence": "2026-06-03: Implemented SQLite-backed audit_events with project_id, key_id, required scope, method, path, status_code, outcome, reason, and timestamp. Added /v1 audit middleware and auth context markers so successful requests, missing keys, invalid keys, insufficient scopes, and route-level failures are recorded without request payloads, query strings, or raw API keys. Validation passed via scripts/check.ps1 with Ruff, 150 pytest tests, and harness validation."
     },
     {
+      "id": "F18.3",
+      "behavior": "Apply a minimal local per-key rate limit to authenticated /v1 API requests.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-06-03: Implemented configurable in-process fixed-window rate limiting for authenticated /v1 requests with AGENTOPS_RATE_LIMIT_PER_MINUTE, per-key identity derived from key_id or a non-secret hash prefix, 429 responses with Retry-After and X-RateLimit headers, disabled mode, window reset behavior, per-key isolation, and audit evidence for rate_limited requests. Validation passed via scripts/check.ps1 with Ruff, 158 pytest tests, and harness validation."
+    },
+    {
+      "id": "F18.4",
+      "behavior": "Prepare a PostgreSQL storage adapter boundary for hosted multi-user deployments.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "not_started",
+      "evidence": "Planned after local rate limiting. Scope should include storage contract tests before switching production persistence."
+    },
+    {
       "id": "F18",
       "behavior": "Harden production readiness with key hashing and rotation, audit logs, rate limits, and a PostgreSQL storage adapter.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",

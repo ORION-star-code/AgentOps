@@ -11,6 +11,7 @@ from agentops_api.api import router
 from agentops_api.evaluation import MimoJudgeProvider, load_mimo_judge_config
 from agentops_api.observability import DEFAULT_DB_PATH, TraceRepository
 from agentops_api.privacy import load_retention_config
+from agentops_api.rate_limit import FixedWindowRateLimiter, load_rate_limit_config
 from agentops_api.security import ApiKeyCredential, ApiKeyStore, load_api_key_credentials
 from agentops_api.viewer import router as viewer_router
 
@@ -19,6 +20,7 @@ def create_app(
     db_path: str | Path | None = None,
     api_keys: Iterable[ApiKeyCredential] | None = None,
     mimo_judge_provider: MimoJudgeProvider | None = None,
+    rate_limiter: FixedWindowRateLimiter | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="AgentOps",
@@ -39,6 +41,9 @@ def create_app(
     app.state.api_key_store = ApiKeyStore(credentials)
     app.state.mimo_judge_provider = mimo_judge_provider or MimoJudgeProvider(
         load_mimo_judge_config(),
+    )
+    app.state.rate_limiter = rate_limiter or FixedWindowRateLimiter(
+        load_rate_limit_config(os.getenv("AGENTOPS_RATE_LIMIT_PER_MINUTE")),
     )
     _install_audit_middleware(app)
     app.include_router(router)

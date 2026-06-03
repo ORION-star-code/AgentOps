@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F18.2 Audit Log complete
-- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 150 pytest tests, and harness validation
+- Latest checkpoint: F18.3 Rate Limiting complete
+- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 158 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -108,6 +108,11 @@
 - [x] `/v1` audit middleware records project ID, key ID, required scope, method, route path, status code, outcome, reason, and timestamp
 - [x] Audit logs intentionally exclude request payloads, query strings, and raw API keys
 - [x] F18.2 tests cover successful requests, missing keys, invalid keys, insufficient scopes, route-level project rejection, and public route exclusion
+- [x] F18.3 in-process fixed-window rate limiter added for authenticated `/v1` requests
+- [x] `AGENTOPS_RATE_LIMIT_PER_MINUTE` configuration added with default 600 requests per minute and `0`/`false`/`off` disabled mode
+- [x] Rate limiter keys requests by configured `key_id` or a non-secret API key hash prefix
+- [x] Rate-limited requests return `429` with `Retry-After`, `X-RateLimit-Limit`, and `X-RateLimit-Remaining`
+- [x] F18.3 tests cover limit enforcement, window reset, per-key isolation, disabled mode, missing/invalid key behavior, audit evidence, and no raw key in rate-limit identity
 
 ## In Progress
 - None
@@ -116,6 +121,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F18.3 Rate Limiting when ready.
-2. Add a minimal per-key local rate limit for `/v1` requests with security negative tests.
-3. Continue F18 with PostgreSQL storage adapter planning after rate limiting is complete.
+1. Start F18.4 PostgreSQL Storage Adapter Boundary when ready.
+2. Define repository contract tests that both SQLite and PostgreSQL adapters must pass.
+3. Keep SQLite as the default local store until hosted deployment needs are validated.
