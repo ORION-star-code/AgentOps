@@ -25,12 +25,16 @@ All `/v1` APIs require an `X-AgentOps-API-Key` header. API keys are configured a
 ```json
 [
   {
-    "key": "local-dev-key",
+    "key_hash": "sha256:ed5a18fb8f807f996d649e379d3f35f39c543a91bdbf88c492f2ebd10d4df86c",
+    "key_id": "local-dev",
     "project_id": "demo-project",
-    "scopes": ["ingest", "read", "evaluate", "admin"]
+    "scopes": ["ingest", "read", "evaluate", "admin"],
+    "revoked": false
   }
 ]
 ```
+
+The server hashes the presented `X-AgentOps-API-Key` before comparing credentials. Plain `key` entries are still accepted for local development and tests, but they are normalized to `sha256:<hex>` in memory. `key_id` gives future audit logs a stable non-secret identifier, and `revoked: true` rejects a key without removing historical configuration.
 
 ### Authorization Rules
 

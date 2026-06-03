@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F16.5 Trace Field Canvas Experiment complete
-- Last validation: 2026-05-31, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 139 pytest tests, and harness validation
+- Latest checkpoint: F18.1 API Key Hashing & Rotation complete
+- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 144 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -100,6 +100,10 @@
 - [x] Trace Field renders event-type lanes, connected event nodes, selected state, click and keyboard selection, and session-scoped collapse/expand
 - [x] Trace Field hides on mobile and reduced-motion contexts so the core Trace Spine and Inspector remain primary
 - [x] F16.5 browser validation loaded `/viewer` with `local-dev-key`, confirmed 6 trace nodes, evaluation-node linkage to the Evidence Inspector, collapse/expand behavior, and stable medium-width layout
+- [x] F18.1 hash-first API key credentials implemented with `sha256:<hex>` `key_hash` configuration
+- [x] F18.1 credentials now support non-secret `key_id` and `revoked` rotation state
+- [x] Plain `key` entries remain accepted for local development but are normalized to hashes in memory
+- [x] F18.1 tests cover hashed config authentication, key ID propagation, revoked-key rejection, rotation behavior, ambiguous key material rejection, and no raw key attribute on credentials
 
 ## In Progress
 - None
@@ -108,6 +112,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F18 Production Hardening when ready.
-2. Prioritize API key hashing/rotation, audit logs, rate limits, and PostgreSQL storage planning.
-3. Revisit the viewer only after real trace usage shows a need for virtualization, saved filters, or multi-run comparison.
+1. Start F18.2 Audit Log when ready.
+2. Record project, key_id, scope, endpoint, outcome, and timestamp for security-relevant `/v1` operations without storing sensitive payloads.
+3. Continue F18 with rate limits and PostgreSQL storage planning after audit logging is complete.

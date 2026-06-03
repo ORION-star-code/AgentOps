@@ -8,11 +8,13 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, Python ingestion SDK, and lightweight LangGraph instrumentation helpers. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
-All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`:
+All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`; production-style entries should use `key_hash`, `key_id`, scopes, and optional `revoked` rotation state:
 
 ```powershell
-$env:AGENTOPS_API_KEYS='[{"key":"local-dev-key","project_id":"demo-project","scopes":["ingest","read","evaluate","admin"]}]'
+$env:AGENTOPS_API_KEYS='[{"key_hash":"sha256:ed5a18fb8f807f996d649e379d3f35f39c543a91bdbf88c492f2ebd10d4df86c","key_id":"local-dev","project_id":"demo-project","scopes":["ingest","read","evaluate","admin"],"revoked":false}]'
 ```
+
+The raw API key is still sent by clients as `X-AgentOps-API-Key`; the server hashes it before matching configured credentials. Plain `key` entries remain accepted for local development and tests, but are normalized to hashes in memory.
 
 Mimo LLM-as-judge integration is configured with environment variables:
 

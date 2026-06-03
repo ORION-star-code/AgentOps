@@ -171,6 +171,13 @@
       "evidence": "2026-05-31: Implemented SQLite retention cleanup using AGENTOPS_RETENTION_DAYS. Cleanup deletes only expired terminal runs and cascaded events, protects running runs, supports dry-run by default and execute mode, returns JSON evidence, and is exposed through python -m agentops_api.retention plus scripts/retention.ps1. Tests cover dry-run, execute deletion, active run protection, disabled retention no-op, and CLI JSON output. Script smoke passed on a temporary SQLite DB. Validation passed with Ruff, 139 pytest tests, and harness validation."
     },
     {
+      "id": "F18.1",
+      "behavior": "Hash API key credentials and support key identifiers plus revoked-key rotation state.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-06-03: Implemented hash-first API key credentials with sha256:<hex> key_hash configuration, optional key_id, revoked key rejection, and rotation support through multiple configured keys. Plain key entries remain accepted for local development and are normalized to hashes in memory. Tests cover hashed config authentication, key_id propagation, revoked-key 401 rejection, old/new rotation behavior, ambiguous key material rejection, and no raw key attribute on credentials. Validation passed via scripts/check.ps1 with Ruff, 144 pytest tests, and harness validation."
+    },
+    {
       "id": "F18",
       "behavior": "Harden production readiness with key hashing and rotation, audit logs, rate limits, and a PostgreSQL storage adapter.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",

@@ -173,3 +173,9 @@
 - Reason: The UI needed a spatial overview of event flow, not a heavy visualization stack; SVG preserves keyboard semantics, browser portability, and low maintenance cost.
 - Rejected alternatives: Add WebGL/Three.js for decorative particles, introduce a frontend build pipeline, or replace the Trace Spine with the mini map.
 - Constraints: Trace Field remains optional and collapsible, hides on mobile and reduced-motion contexts, and the Trace Spine plus Evidence Inspector stay the authoritative debugging surfaces.
+
+## 2026-06-03: Store API key credentials as hashes with rotation metadata
+- Decision: Represent configured API credentials with `sha256:<hex>` hashes, optional non-secret `key_id`, and a `revoked` flag while still accepting plain `key` entries for local development.
+- Reason: AgentOps traces can contain sensitive tool payloads and RAG evidence, so production credentials should not be kept as plaintext configuration, and future audit logs need a stable key identifier that is not secret.
+- Rejected alternatives: Keep plaintext-only credentials, add a database-backed key table before the production storage adapter exists, or introduce a password hashing dependency for high-entropy API keys.
+- Constraints: Clients still send the raw key in `X-AgentOps-API-Key`; the server hashes before matching, revoked keys authenticate as invalid, and plaintext local entries are normalized to hashes in memory.
