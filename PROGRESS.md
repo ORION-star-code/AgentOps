@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F18.1 API Key Hashing & Rotation complete
-- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 144 pytest tests, and harness validation
+- Latest checkpoint: F18.2 Audit Log complete
+- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 150 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -104,6 +104,10 @@
 - [x] F18.1 credentials now support non-secret `key_id` and `revoked` rotation state
 - [x] Plain `key` entries remain accepted for local development but are normalized to hashes in memory
 - [x] F18.1 tests cover hashed config authentication, key ID propagation, revoked-key rejection, rotation behavior, ambiguous key material rejection, and no raw key attribute on credentials
+- [x] F18.2 SQLite-backed `audit_events` table added for non-sensitive security audit metadata
+- [x] `/v1` audit middleware records project ID, key ID, required scope, method, route path, status code, outcome, reason, and timestamp
+- [x] Audit logs intentionally exclude request payloads, query strings, and raw API keys
+- [x] F18.2 tests cover successful requests, missing keys, invalid keys, insufficient scopes, route-level project rejection, and public route exclusion
 
 ## In Progress
 - None
@@ -112,6 +116,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F18.2 Audit Log when ready.
-2. Record project, key_id, scope, endpoint, outcome, and timestamp for security-relevant `/v1` operations without storing sensitive payloads.
-3. Continue F18 with rate limits and PostgreSQL storage planning after audit logging is complete.
+1. Start F18.3 Rate Limiting when ready.
+2. Add a minimal per-key local rate limit for `/v1` requests with security negative tests.
+3. Continue F18 with PostgreSQL storage adapter planning after rate limiting is complete.

@@ -71,10 +71,13 @@ def get_mimo_judge_provider(request: Request) -> MimoJudgeProvider:
 
 def require_scope(required_scope: ApiScope):
     def dependency(
+        request: Request,
         store: Annotated[ApiKeyStore, Depends(get_api_key_store)],
         api_key: Annotated[str | None, Header(alias=API_KEY_HEADER)] = None,
     ) -> AuthenticatedPrincipal:
+        request.state.agentops_audit_scope = required_scope.value
         if api_key is None:
+            request.state.agentops_audit_reason = "missing_api_key"
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Missing API key",
@@ -82,15 +85,20 @@ def require_scope(required_scope: ApiScope):
 
         principal = store.authenticate(api_key)
         if principal is None:
+            request.state.agentops_audit_reason = "invalid_api_key"
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid API key",
             )
+        request.state.agentops_audit_project_id = principal.project_id
+        request.state.agentops_audit_key_id = principal.key_id
         if not principal.allows(required_scope):
+            request.state.agentops_audit_reason = "insufficient_scope"
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="API key does not have the required scope",
             )
+        request.state.agentops_audit_reason = "request_completed"
         return principal
 
     return dependency

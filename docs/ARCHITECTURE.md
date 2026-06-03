@@ -9,6 +9,7 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 ## Initial Module Boundaries
 
 - `agentops_api.api`: HTTP routes and request/response wiring.
+- `agentops_api.audit`: Non-sensitive security audit event contracts.
 - `agentops_api.security`: API key authentication, scope checks, and project isolation.
 - `agentops_api.privacy`: Sensitive JSON redaction and retention configuration.
 - `agentops_api.observability`: Agent run traces, reasoning timeline, tool calls, token usage, latency, and errors.
@@ -45,6 +46,33 @@ The server hashes the presented `X-AgentOps-API-Key` before comparing credential
 - `admin` satisfies scope checks for its bound project, but does not bypass project isolation.
 - Run-scoped APIs verify that the stored run `project_id` matches the authenticated API key project.
 - Missing or invalid API keys return `401`; insufficient scope or cross-project access returns `403`.
+
+## F18.2 Audit Log Boundary
+
+Security-relevant `/v1` requests are recorded as non-sensitive audit rows in SQLite:
+
+```text
+HTTP /v1 request
+        |
+        v
+auth dependency marks project_id, key_id, and required scope
+        |
+        v
+audit middleware records outcome after response status is known
+        |
+        v
+audit_events table
+```
+
+### Audit Event Contract
+
+- `project_id`: authenticated project when available.
+- `key_id`: configured non-secret API key identifier when available.
+- `scope`: required API scope for the route.
+- `method` and `path`: HTTP method and route path without query string.
+- `status_code`, `outcome`, `reason`, and `timestamp`.
+
+Audit events intentionally do not store request bodies, response bodies, query strings, or raw API keys. Missing-key and invalid-key requests are still audited, but without project or key context. Route-level failures such as cross-project access are recorded with the authenticated project/key context and a failed outcome.
 
 ## F07 Privacy Boundary
 

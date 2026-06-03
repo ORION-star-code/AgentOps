@@ -4,8 +4,9 @@ import os
 from collections.abc import Iterable
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
+from agentops_api.audit import AuditEvent, AuditOutcome
 from agentops_api.api import router
 from agentops_api.evaluation import MimoJudgeProvider, load_mimo_judge_config
 from agentops_api.observability import DEFAULT_DB_PATH, TraceRepository
@@ -39,10 +40,73 @@ def create_app(
     app.state.mimo_judge_provider = mimo_judge_provider or MimoJudgeProvider(
         load_mimo_judge_config(),
     )
+    _install_audit_middleware(app)
     app.include_router(router)
     app.include_router(viewer_router)
 
     return app
+
+
+def _install_audit_middleware(app: FastAPI) -> None:
+    @app.middleware("http")
+    async def audit_v1_requests(request: Request, call_next):
+        if not request.url.path.startswith("/v1"):
+            return await call_next(request)
+
+        try:
+            response = await call_next(request)
+        except Exception:
+            _persist_audit_event(
+                request,
+                status_code=500,
+                outcome=AuditOutcome.FAILED,
+                reason="unhandled_exception",
+            )
+            raise
+
+        reason = getattr(request.state, "agentops_audit_reason", None)
+        if response.status_code >= 400:
+            outcome = AuditOutcome.FAILED
+            if reason in (None, "request_completed"):
+                reason = "request_failed"
+        else:
+            outcome = AuditOutcome.SUCCEEDED
+            reason = reason or "request_completed"
+
+        _persist_audit_event(
+            request,
+            status_code=response.status_code,
+            outcome=outcome,
+            reason=reason,
+        )
+        return response
+
+
+def _persist_audit_event(
+    request: Request,
+    *,
+    status_code: int,
+    outcome: AuditOutcome,
+    reason: str,
+) -> None:
+    repository = getattr(request.app.state, "trace_repository", None)
+    if repository is None:
+        return
+
+    event = AuditEvent(
+        project_id=getattr(request.state, "agentops_audit_project_id", None),
+        key_id=getattr(request.state, "agentops_audit_key_id", None),
+        scope=getattr(request.state, "agentops_audit_scope", None),
+        method=request.method,
+        path=request.url.path,
+        status_code=status_code,
+        outcome=outcome,
+        reason=reason,
+    )
+    try:
+        repository.save_audit_event(event)
+    except Exception:
+        return
 
 
 app = create_app()

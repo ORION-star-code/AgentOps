@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
+from agentops_api.audit import AuditEvent, AuditOutcome
 from agentops_api.observability.schemas import (
     AgentRun,
     AgentRunCreate,
@@ -112,6 +113,25 @@ class TraceRepository:
 
                 CREATE INDEX IF NOT EXISTS idx_regression_reports_runs
                     ON regression_reports (baseline_run_id, candidate_run_id);
+
+                CREATE TABLE IF NOT EXISTS audit_events (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT,
+                    key_id TEXT,
+                    scope TEXT,
+                    method TEXT NOT NULL,
+                    path TEXT NOT NULL,
+                    status_code INTEGER NOT NULL,
+                    outcome TEXT NOT NULL,
+                    reason TEXT,
+                    timestamp TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_audit_events_project_timestamp
+                    ON audit_events (project_id, timestamp);
+
+                CREATE INDEX IF NOT EXISTS idx_audit_events_key_timestamp
+                    ON audit_events (key_id, timestamp);
                 """
             )
 
@@ -455,6 +475,65 @@ class TraceRepository:
 
         return RegressionReport.model_validate(_from_json(row["report"]))
 
+    def save_audit_event(self, event: AuditEvent) -> AuditEvent:
+        """Persist a non-sensitive API audit event."""
+
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO audit_events (
+                    id,
+                    project_id,
+                    key_id,
+                    scope,
+                    method,
+                    path,
+                    status_code,
+                    outcome,
+                    reason,
+                    timestamp
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.id,
+                    event.project_id,
+                    event.key_id,
+                    event.scope,
+                    event.method,
+                    event.path,
+                    event.status_code,
+                    event.outcome.value,
+                    event.reason,
+                    event.timestamp.isoformat(),
+                ),
+            )
+        return event
+
+    def list_audit_events(
+        self,
+        *,
+        project_id: str | None = None,
+        limit: int = 100,
+    ) -> list[AuditEvent]:
+        """Return recent audit events, optionally scoped to a project."""
+
+        conditions: list[str] = []
+        parameters: list[Any] = []
+        if project_id is not None:
+            conditions.append("project_id = ?")
+            parameters.append(project_id)
+
+        query = "SELECT * FROM audit_events"
+        if conditions:
+            query += f" WHERE {' AND '.join(conditions)}"
+        query += " ORDER BY timestamp DESC, id DESC LIMIT ?"
+        parameters.append(limit)
+
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [_row_to_audit_event(row) for row in rows]
+
     def cleanup_expired_runs(
         self,
         *,
@@ -645,4 +724,19 @@ def _row_to_event(row: sqlite3.Row) -> RunEvent:
         name=row["name"],
         timestamp=row["timestamp"],
         payload=_from_json(row["payload"]),
+    )
+
+
+def _row_to_audit_event(row: sqlite3.Row) -> AuditEvent:
+    return AuditEvent(
+        id=row["id"],
+        project_id=row["project_id"],
+        key_id=row["key_id"],
+        scope=row["scope"],
+        method=row["method"],
+        path=row["path"],
+        status_code=row["status_code"],
+        outcome=AuditOutcome(row["outcome"]),
+        reason=row["reason"],
+        timestamp=row["timestamp"],
     )

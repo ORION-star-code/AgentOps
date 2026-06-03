@@ -179,3 +179,9 @@
 - Reason: AgentOps traces can contain sensitive tool payloads and RAG evidence, so production credentials should not be kept as plaintext configuration, and future audit logs need a stable key identifier that is not secret.
 - Rejected alternatives: Keep plaintext-only credentials, add a database-backed key table before the production storage adapter exists, or introduce a password hashing dependency for high-entropy API keys.
 - Constraints: Clients still send the raw key in `X-AgentOps-API-Key`; the server hashes before matching, revoked keys authenticate as invalid, and plaintext local entries are normalized to hashes in memory.
+
+## 2026-06-03: Audit `/v1` security events without storing request data
+- Decision: Record non-sensitive audit events for `/v1` API requests through FastAPI middleware and persist them in the existing SQLite repository.
+- Reason: AgentOps needs accountable security evidence before hosted use, and F18.1 `key_id` now gives each request a stable non-secret credential identifier.
+- Rejected alternatives: Log raw request payloads for richer forensics, expose an audit API before access patterns are known, or create a separate audit database before the storage adapter boundary is mature.
+- Constraints: Audit rows store project ID, key ID, required scope, method, route path, status code, outcome, reason, and timestamp only. Query strings, request bodies, response bodies, and raw API keys are intentionally excluded.

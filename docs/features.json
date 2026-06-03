@@ -178,6 +178,13 @@
       "evidence": "2026-06-03: Implemented hash-first API key credentials with sha256:<hex> key_hash configuration, optional key_id, revoked key rejection, and rotation support through multiple configured keys. Plain key entries remain accepted for local development and are normalized to hashes in memory. Tests cover hashed config authentication, key_id propagation, revoked-key 401 rejection, old/new rotation behavior, ambiguous key material rejection, and no raw key attribute on credentials. Validation passed via scripts/check.ps1 with Ruff, 144 pytest tests, and harness validation."
     },
     {
+      "id": "F18.2",
+      "behavior": "Record non-sensitive audit log events for security-relevant /v1 API operations.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-06-03: Implemented SQLite-backed audit_events with project_id, key_id, required scope, method, path, status_code, outcome, reason, and timestamp. Added /v1 audit middleware and auth context markers so successful requests, missing keys, invalid keys, insufficient scopes, and route-level failures are recorded without request payloads, query strings, or raw API keys. Validation passed via scripts/check.ps1 with Ruff, 150 pytest tests, and harness validation."
+    },
+    {
       "id": "F18",
       "behavior": "Harden production readiness with key hashing and rotation, audit logs, rate limits, and a PostgreSQL storage adapter.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",

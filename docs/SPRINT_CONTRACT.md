@@ -2,9 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F18.1 API Key Hashing & Rotation.
+- Current completed feature: F18.2 Audit Log.
 - Current active branch sequence: production hardening.
-- Next feature: F18.2 Audit Log.
+- Next feature: F18.3 Rate Limiting.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -21,6 +21,7 @@
 - Instrumentation features include fake graph tests for node contexts, wrapper execution, model/tool usage, error capture, run completion/failure, and no real LangGraph dependency.
 - UI features include API contract tests, authenticated data-access checks, project isolation checks, and a basic served-page test that proves credentials are not embedded in the shell.
 - API key hardening features include hashed credential configuration, key identifier propagation, revoked key rejection, rotation tests, and no raw key persistence in credential objects.
+- Audit log features include positive and negative security request coverage and must prove audit rows exclude raw API keys, request payloads, and query strings.
 - F16 UI branch features are tracked as F16.x entries in `docs/features.json` so the Harness WIP=1 rule remains unchanged without adding nested feature schema.
 - F16.5 keeps visual experimentation lightweight: SVG/CSS mini map first, WebGL deferred unless real debugging workflows need it.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
