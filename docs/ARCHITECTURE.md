@@ -20,6 +20,34 @@ It is not a general chatbot runtime or an enterprise Agent orchestration platfor
 - `agentops_api.instrumentation`: Framework-specific helpers built on top of the SDK.
 - `agentops_api.viewer`: Minimal browser UI served by FastAPI and backed by authenticated `/v1` APIs.
 
+## F18.4 Storage Adapter Boundary
+
+Trace persistence now goes through an explicit storage configuration and repository protocol boundary:
+
+```text
+FastAPI create_app
+        |
+        v
+load_storage_config
+        |
+        v
+create_trace_repository
+        |
+        +--> sqlite: TraceRepository(.agentops/agentops.db)
+        |
+        +--> postgres: fail closed until adapter implementation exists
+```
+
+### Storage Configuration
+
+- `AGENTOPS_STORAGE_BACKEND`: defaults to `sqlite`; currently accepts `sqlite` or `postgres`.
+- `AGENTOPS_DB_PATH`: SQLite database path, default `.agentops/agentops.db`.
+- `AGENTOPS_DATABASE_URL`: required when `AGENTOPS_STORAGE_BACKEND=postgres`.
+
+`TraceRepositoryProtocol` defines the contract all storage adapters must satisfy: run CRUD, project-scoped run listing, event append/query/paging, event summary, lifecycle transitions, regression report persistence, audit event persistence, and retention cleanup. SQLite is still the only implemented adapter and remains the default local store.
+
+PostgreSQL is intentionally fail-closed in this step. If `postgres` is configured, the app raises a clear adapter-unavailable error instead of silently falling back to SQLite. The next implementation step should add a real PostgreSQL adapter and run the same repository contract tests against it.
+
 ## F06 Security Boundary
 
 All `/v1` APIs require an `X-AgentOps-API-Key` header. API keys are configured as project-bound credentials with explicit scopes:

@@ -9,7 +9,11 @@ from fastapi import FastAPI, Request
 from agentops_api.audit import AuditEvent, AuditOutcome
 from agentops_api.api import router
 from agentops_api.evaluation import MimoJudgeProvider, load_mimo_judge_config
-from agentops_api.observability import DEFAULT_DB_PATH, TraceRepository
+from agentops_api.observability import (
+    TraceRepositoryProtocol,
+    create_trace_repository,
+    load_storage_config,
+)
 from agentops_api.privacy import load_retention_config
 from agentops_api.rate_limit import FixedWindowRateLimiter, load_rate_limit_config
 from agentops_api.security import ApiKeyCredential, ApiKeyStore, load_api_key_credentials
@@ -21,6 +25,7 @@ def create_app(
     api_keys: Iterable[ApiKeyCredential] | None = None,
     mimo_judge_provider: MimoJudgeProvider | None = None,
     rate_limiter: FixedWindowRateLimiter | None = None,
+    trace_repository: TraceRepositoryProtocol | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="AgentOps",
@@ -29,8 +34,15 @@ def create_app(
     )
     retention_config = load_retention_config(os.getenv("AGENTOPS_RETENTION_DAYS"))
     app.state.retention_config = retention_config
-    app.state.trace_repository = TraceRepository(
-        db_path or DEFAULT_DB_PATH,
+    storage_config = load_storage_config(
+        backend=os.getenv("AGENTOPS_STORAGE_BACKEND"),
+        sqlite_db_path=db_path or os.getenv("AGENTOPS_DB_PATH"),
+        database_url=os.getenv("AGENTOPS_DATABASE_URL"),
+    )
+    app.state.storage_config = storage_config
+    app.state.trace_repository = trace_repository or create_trace_repository(
+        storage_config,
+        db_path=db_path,
         retention_config=retention_config,
     )
     credentials = (

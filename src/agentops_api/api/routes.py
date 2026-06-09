@@ -36,7 +36,7 @@ from agentops_api.observability import (
     RunNotFoundError,
     RunDetail,
     RunStatus,
-    TraceRepository,
+    TraceRepositoryProtocol,
     build_run_detail,
 )
 from agentops_api.rag import RagEvidence
@@ -58,7 +58,7 @@ GENERIC_EVENT_TYPES = {
 }
 
 
-def get_trace_repository(request: Request) -> TraceRepository:
+def get_trace_repository(request: Request) -> TraceRepositoryProtocol:
     return request.app.state.trace_repository
 
 
@@ -127,7 +127,7 @@ def health() -> dict[str, str]:
 @router.post("/v1/runs", response_model=AgentRun, status_code=status.HTTP_201_CREATED)
 def create_run(
     payload: AgentRunCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> AgentRun:
     _ensure_project_access(principal, payload.project_id)
@@ -140,7 +140,7 @@ def create_run(
     response_model_exclude_none=True,
 )
 def list_runs(
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireRead,
     limit: Annotated[int, Query(ge=1, le=MAX_RUN_LIMIT)] = DEFAULT_RUN_LIMIT,
     run_status: Annotated[RunStatus | None, Query(alias="status")] = None,
@@ -161,7 +161,7 @@ def list_runs(
 @router.get("/v1/runs/{run_id}", response_model=AgentRun)
 def get_run(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireRead,
 ) -> AgentRun:
     return _get_authorized_run(repository, run_id, principal)
@@ -175,7 +175,7 @@ def get_run(
 def append_run_event(
     run_id: str,
     payload: RunEventCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> RunEvent:
     _ensure_generic_event_type(payload.type)
@@ -194,7 +194,7 @@ def append_run_event(
 @router.get("/v1/runs/{run_id}/events", response_model=list[RunEvent])
 def list_run_events(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireRead,
     limit: Annotated[int, Query(ge=1, le=MAX_EVENT_LIMIT)] = DEFAULT_EVENT_LIMIT,
     after_sequence: Annotated[int | None, Query(ge=0)] = None,
@@ -215,7 +215,7 @@ def list_run_events(
 @router.get("/v1/runs/{run_id}/detail", response_model=RunDetail)
 def get_run_detail(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireRead,
 ) -> RunDetail:
     run = _get_authorized_run(repository, run_id, principal)
@@ -232,7 +232,7 @@ def get_run_detail(
 def append_rag_evidence(
     run_id: str,
     evidence: RagEvidence,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> RunEvent:
     _get_authorized_run(repository, run_id, principal)
@@ -260,7 +260,7 @@ def append_rag_evidence(
 def append_evaluation_result(
     run_id: str,
     evaluation: EvaluationResultCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireEvaluate,
 ) -> RunEvent:
     _get_authorized_run(repository, run_id, principal)
@@ -289,7 +289,7 @@ def append_evaluation_result(
 def append_judge_evaluation_result(
     run_id: str,
     evaluation: EvaluationJudgeCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     judge_provider: Annotated[MimoJudgeProvider, Depends(get_mimo_judge_provider)],
     principal: RequireEvaluate,
 ) -> RunEvent:
@@ -337,7 +337,7 @@ def append_judge_evaluation_result(
 )
 def create_golden_dataset_run(
     payload: GoldenDatasetRunCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     judge_provider: Annotated[MimoJudgeProvider, Depends(get_mimo_judge_provider)],
     principal: RequireEvaluate,
 ) -> GoldenDatasetRunResult:
@@ -355,7 +355,7 @@ def create_golden_dataset_run(
 )
 def compare_golden_dataset_regression(
     payload: GoldenDatasetRegressionCompareCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireEvaluate,
 ) -> GoldenDatasetRegressionResult:
     _ensure_project_access(principal, payload.project_id)
@@ -384,7 +384,7 @@ def compare_golden_dataset_regression(
 @router.post("/v1/runs/{run_id}/complete", response_model=AgentRun)
 def complete_run(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> AgentRun:
     _get_authorized_run(repository, run_id, principal)
@@ -402,7 +402,7 @@ def complete_run(
 @router.post("/v1/runs/{run_id}/fail", response_model=AgentRun)
 def fail_run(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> AgentRun:
     _get_authorized_run(repository, run_id, principal)
@@ -420,7 +420,7 @@ def fail_run(
 @router.post("/v1/runs/{run_id}/cancel", response_model=AgentRun)
 def cancel_run(
     run_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireIngest,
 ) -> AgentRun:
     _get_authorized_run(repository, run_id, principal)
@@ -438,7 +438,7 @@ def cancel_run(
 @router.post("/v1/regressions/compare", response_model=RegressionReport)
 def compare_regression(
     payload: RegressionComparisonCreate,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireEvaluate,
 ) -> RegressionReport:
     report = build_regression_report(payload, project_id=principal.project_id)
@@ -448,7 +448,7 @@ def compare_regression(
 @router.get("/v1/regressions/reports/{report_id}", response_model=RegressionReport)
 def get_regression_report(
     report_id: str,
-    repository: Annotated[TraceRepository, Depends(get_trace_repository)],
+    repository: Annotated[TraceRepositoryProtocol, Depends(get_trace_repository)],
     principal: RequireEvaluate,
 ) -> RegressionReport:
     report = repository.get_regression_report(report_id)
@@ -459,7 +459,7 @@ def get_regression_report(
 
 
 def _get_authorized_run(
-    repository: TraceRepository,
+    repository: TraceRepositoryProtocol,
     run_id: str,
     principal: AuthenticatedPrincipal,
 ) -> AgentRun:

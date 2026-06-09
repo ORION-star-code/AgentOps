@@ -20,6 +20,14 @@ from agentops_api.observability.schemas import (
     build_run_detail,
     summarize_events,
 )
+from agentops_api.observability.storage import (
+    PostgresStorageUnavailableError,
+    StorageBackend,
+    StorageConfig,
+    TraceRepositoryProtocol,
+    create_trace_repository,
+    load_storage_config,
+)
 
 __all__ = [
     "DEFAULT_DB_PATH",
@@ -36,6 +44,12 @@ __all__ = [
     "RunDetail",
     "RunDetailSummary",
     "TraceRepository",
+    "TraceRepositoryProtocol",
+    "PostgresStorageUnavailableError",
+    "StorageBackend",
+    "StorageConfig",
     "build_run_detail",
+    "create_trace_repository",
+    "load_storage_config",
     "summarize_events",
 ]

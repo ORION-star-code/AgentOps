@@ -19,6 +19,9 @@ dev = [
     "pytest>=8,<9",
     "ruff>=0.8,<1",
 ]
+postgres = [
+    "psycopg[binary]>=3,<4",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

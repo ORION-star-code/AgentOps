@@ -191,3 +191,9 @@
 - Reason: AgentOps needs a basic cost and abuse guard before hosted use, while the project does not yet have Redis, PostgreSQL advisory locks, or a distributed deployment topology.
 - Rejected alternatives: Add Redis immediately, rate-limit by raw API key, rate-limit only write endpoints, or block missing/invalid keys through the per-key limiter before authentication can identify a credential.
 - Constraints: The limiter is local to one process and suitable for MVP/local deployments. It keys by non-secret `key_id` when available, otherwise by a short API key hash prefix. Distributed rate limiting should be revisited with the PostgreSQL/Redis production storage work.
+
+## 2026-06-09: Add a storage factory before implementing PostgreSQL
+- Decision: Introduce `StorageConfig`, `TraceRepositoryProtocol`, and `create_trace_repository` before writing the PostgreSQL adapter.
+- Reason: The SQLite repository has become the core evidence store for traces, evaluations, regression reports, audit logs, retention, and viewer summaries; a shared contract reduces the risk of a PostgreSQL adapter drifting from existing behavior.
+- Rejected alternatives: Switch the app directly to PostgreSQL, add a partial adapter without contract tests, or silently fall back to SQLite when PostgreSQL is configured.
+- Constraints: SQLite remains the default and only implemented backend. `AGENTOPS_STORAGE_BACKEND=postgres` requires `AGENTOPS_DATABASE_URL` and fails closed until the adapter is implemented. Future adapters must pass the shared repository contract suite.

@@ -195,8 +195,15 @@
       "id": "F18.4",
       "behavior": "Prepare a PostgreSQL storage adapter boundary for hosted multi-user deployments.",
       "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
+      "state": "passing",
+      "evidence": "2026-06-09: Implemented StorageConfig, StorageBackend, TraceRepositoryProtocol, create_trace_repository, AGENTOPS_STORAGE_BACKEND, AGENTOPS_DB_PATH, and AGENTOPS_DATABASE_URL configuration. SQLite remains the default and satisfies the shared repository contract covering run CRUD, event append/query/summary, lifecycle transitions, regression report persistence, audit event persistence, and retention dry-run behavior. PostgreSQL configuration fails closed with PostgresStorageUnavailableError until the real adapter is implemented. Validation passed via scripts/check.ps1 with Ruff, 166 pytest tests, and harness validation."
+    },
+    {
+      "id": "F18.5",
+      "behavior": "Implement a PostgreSQL trace repository adapter that satisfies the shared storage contract.",
+      "verification": "powershell -ExecutionPolicy Bypass -File scripts/check.ps1",
       "state": "not_started",
-      "evidence": "Planned after local rate limiting. Scope should include storage contract tests before switching production persistence."
+      "evidence": "Planned after F18.4. Requires a real PostgreSQL test database or explicit integration-test gating."
     },
     {
       "id": "F18",

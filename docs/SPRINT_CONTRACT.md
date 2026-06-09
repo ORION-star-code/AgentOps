@@ -2,9 +2,9 @@
 
 ## Scope
 - Keep WIP=1 and advance only one production-readiness feature at a time.
-- Current completed feature: F18.3 Rate Limiting.
+- Current completed feature: F18.4 PostgreSQL Storage Adapter Boundary.
 - Current active branch sequence: production hardening.
-- Next feature: F18.4 PostgreSQL Storage Adapter Boundary.
+- Next feature: F18.5 PostgreSQL Adapter Implementation.
 
 ## Verification Standards
 - `python harness/validate.py` passes.
@@ -23,6 +23,7 @@
 - API key hardening features include hashed credential configuration, key identifier propagation, revoked key rejection, rotation tests, and no raw key persistence in credential objects.
 - Audit log features include positive and negative security request coverage and must prove audit rows exclude raw API keys, request payloads, and query strings.
 - Rate limiting features include limit enforcement, reset behavior, per-key isolation, disabled mode, 429 headers, audit evidence, and proof that raw API keys are not used as limiter identities.
+- Storage boundary features include repository contract tests, SQLite default preservation, explicit PostgreSQL configuration handling, and fail-closed behavior until a real adapter exists.
 - F16 UI branch features are tracked as F16.x entries in `docs/features.json` so the Harness WIP=1 rule remains unchanged without adding nested feature schema.
 - F16.5 keeps visual experimentation lightweight: SVG/CSS mini map first, WebGL deferred unless real debugging workflows need it.
 - A fresh agent can answer what is complete, what is next, and how to verify from repository files alone.
@@ -32,4 +33,5 @@
 - WebGL work is optional and deferred unless the lightweight Trace Field proves insufficient on real traces.
 - Full enterprise auth, OAuth, or organization management.
 - Distributed rate limiting or Redis until hosted deployment topology is chosen.
+- Silent fallback from configured PostgreSQL storage to SQLite.
 - Large refactors unrelated to the active feature.

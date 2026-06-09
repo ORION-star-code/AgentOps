@@ -6,7 +6,7 @@ The project is focused on helping Agent developers inspect a task run end to end
 
 ## Current Status
 
-This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, non-sensitive audit logging, local per-key rate limiting, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, Python ingestion SDK, and lightweight LangGraph instrumentation helpers. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
+This repository has a working trace, RAG evidence, answer quality evaluation, regression comparison, run detail, API key security foundation, non-sensitive audit logging, local per-key rate limiting, storage adapter boundary, Mimo LLM-as-judge integration, golden dataset runner, dataset regression pipeline, Python ingestion SDK, and lightweight LangGraph instrumentation helpers. The API can create Agent runs, append timeline events, record structured RAG retrieval evidence, persist evaluation results, run repeatable golden datasets, compare candidate changes against baselines, persist reproducible regression reports, and return a developer-facing run detail payload.
 
 All `/v1` endpoints require `X-AgentOps-API-Key`. Local credentials are configured with `AGENTOPS_API_KEYS`; production-style entries should use `key_hash`, `key_id`, scopes, and optional `revoked` rotation state:
 
@@ -19,6 +19,8 @@ The raw API key is still sent by clients as `X-AgentOps-API-Key`; the server has
 Security-relevant `/v1` requests are written to an internal SQLite `audit_events` table with project ID, key ID, required scope, method, route path, status code, outcome, reason, and timestamp. Audit rows intentionally exclude raw API keys, request payloads, response payloads, and query strings.
 
 Authenticated `/v1` requests are protected by an in-process fixed-window rate limiter. Configure it with `AGENTOPS_RATE_LIMIT_PER_MINUTE`; the default is `600`, and `0` disables it for local experiments. This limiter is intentionally local to one process and should be replaced or backed by shared infrastructure before multi-host public deployment.
+
+Storage defaults to SQLite through `AGENTOPS_STORAGE_BACKEND=sqlite` and `AGENTOPS_DB_PATH=.agentops/agentops.db`. The repository boundary now has shared contract tests for future adapters. `AGENTOPS_STORAGE_BACKEND=postgres` is recognized but intentionally fails closed until the PostgreSQL adapter is implemented; set `AGENTOPS_DATABASE_URL` only when working on that adapter.
 
 Mimo LLM-as-judge integration is configured with environment variables:
 

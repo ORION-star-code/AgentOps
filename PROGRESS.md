@@ -2,8 +2,8 @@
 
 ## Current Status
 - Project: AgentOps
-- Latest checkpoint: F18.3 Rate Limiting complete
-- Last validation: 2026-06-03, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 158 pytest tests, and harness validation
+- Latest checkpoint: F18.4 PostgreSQL Storage Adapter Boundary complete
+- Last validation: 2026-06-09, `powershell -ExecutionPolicy Bypass -File scripts/check.ps1` passed with Ruff, 166 pytest tests, and harness validation
 - Current WIP: none
 
 ## Completed
@@ -113,6 +113,11 @@
 - [x] Rate limiter keys requests by configured `key_id` or a non-secret API key hash prefix
 - [x] Rate-limited requests return `429` with `Retry-After`, `X-RateLimit-Limit`, and `X-RateLimit-Remaining`
 - [x] F18.3 tests cover limit enforcement, window reset, per-key isolation, disabled mode, missing/invalid key behavior, audit evidence, and no raw key in rate-limit identity
+- [x] F18.4 storage configuration and repository factory added with `AGENTOPS_STORAGE_BACKEND`, `AGENTOPS_DB_PATH`, and `AGENTOPS_DATABASE_URL`
+- [x] `TraceRepositoryProtocol` added as the contract future storage adapters must satisfy
+- [x] Shared repository contract tests cover run CRUD, project listing, event append/query/summary, lifecycle transitions, regression reports, audit events, and retention dry-run behavior
+- [x] SQLite remains the default local store and passes the shared storage contract
+- [x] PostgreSQL configuration fails closed with a clear adapter-unavailable error until the real adapter is implemented
 
 ## In Progress
 - None
@@ -121,6 +126,6 @@
 - None recorded
 
 ## Next Steps
-1. Start F18.4 PostgreSQL Storage Adapter Boundary when ready.
-2. Define repository contract tests that both SQLite and PostgreSQL adapters must pass.
-3. Keep SQLite as the default local store until hosted deployment needs are validated.
+1. Start F18.5 PostgreSQL Adapter Implementation when ready.
+2. Add a real PostgreSQL repository implementation gated by a PostgreSQL integration test database.
+3. Reuse the F18.4 repository contract suite for both SQLite and PostgreSQL.
